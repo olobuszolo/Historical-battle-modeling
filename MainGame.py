@@ -1,6 +1,6 @@
 import pygame
 from Cell import Cell
-from Buttons import StartButton, ClearButton, ComboBox
+from Buttons import StartButton, ClearButton, ComboBox, Slider
 from CONFIG import *
 
 class MainGame:
@@ -8,15 +8,17 @@ class MainGame:
         pygame.init()
         self.window = pygame.display.set_mode((WIN_DIMS[0],WIN_DIMS[1]+MENU_SIZE))
         self.bgColor = (255,255,255)
-        self.background_image = pygame.image.load("artistic_battlefield_map.png")
+        self.background_image = pygame.image.load("resources\\artistic_battlefield_map.png")
+        self.bar_image = pygame.image.load("resources\\bar.jpg")
         self.quit_game = False
         
         self.board = [[Cell() for _ in range(WIN_DIMS[1]//CELL_SIZE)] for _ in range(WIN_DIMS[0]//CELL_SIZE)]
         
-        self.start_button = StartButton(self,'Start', 10, 730, True)
+        self.start_button = StartButton(self,'Start', 10, 735, True)
         self.start_iteration = False
-        self.clear_button = ClearButton(self,'Clear', 170, 730, True)
-        self.combo_box = ComboBox(self,330,730,25,150,[0,1,2,3],0)
+        self.clear_button = ClearButton(self,'Clear', 170, 735, True)
+        self.combo_box = ComboBox(self,330,735,[0,1,2,3],0)
+        self.slider = Slider(self,490,735,150,25,0,100)
     
         self.dragging = False
     
@@ -29,17 +31,24 @@ class MainGame:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.quit_game = True
+                
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    self.dragging = True
+                    if event.pos[0]<WIN_DIMS[0] and event.pos[1]<WIN_DIMS[1]:
+                        self.dragging = True
                     self.handle_click(event.pos)
+                    self.slider.handle_event(event)
+                    
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
                     if self.dragging:
                         self.dragging = False
+                    self.slider.handle_event(event)
+                        
             elif event.type == pygame.MOUSEMOTION:
-                    if self.dragging:
+                    if self.dragging and event.pos[0]<WIN_DIMS[0] and event.pos[1]<WIN_DIMS[1]:
                         self.handle_click(event.pos)
+                    self.slider.handle_event(event)
 
     def handle_click(self, position):
         if position[0]<WIN_DIMS[0] and position[1]<WIN_DIMS[1] and not self.combo_box.active:
@@ -64,10 +73,10 @@ class MainGame:
         else:
             self.combo_box.handle_event(position,False)
     
-    
     def render(self):
         self.window.fill(self.bgColor)
         self.window.blit(self.background_image,(0,0))
+        self.window.blit(self.bar_image,(0,720))
         for i,row in enumerate(self.board):
             for j,col in enumerate(row):
                 if col.clicked == True:
@@ -75,6 +84,7 @@ class MainGame:
         self.start_button.draw()
         self.clear_button.draw()
         self.combo_box.draw()
+        self.slider.draw()
         pygame.display.update()
         
 
