@@ -14,7 +14,8 @@ class MainGame:
         pygame.display.set_icon(pygame_icon)
         self.quit_game = False
         
-        self.board = [[Cell() for _ in range(WIN_DIMS[1]//CELL_SIZE)] for _ in range(WIN_DIMS[0]//CELL_SIZE)]
+        self.board = [[Cell((i,j)) for i in range(WIN_DIMS[1]//CELL_SIZE)] for j in range(WIN_DIMS[0]//CELL_SIZE)]
+        self.add_neighbor()
         self.iteration_num = 0
         
         self.start_button = StartButton(self,'Start', 10, 735, True)
@@ -24,6 +25,20 @@ class MainGame:
         self.slider = Slider(self,490,735,150,25,0,100)
     
         self.dragging = False
+    
+    #MOORE
+    def add_neighbor(self):
+        for i in range(len(self.board)):
+            for j in range(len(self.board[i])):
+                neighbor = []
+                for x in range(i-1,i+2):
+                    for y in range(j-1,j+2):
+                        if i==x and y == j: 
+                            continue
+                        if x>=0 and x<len(self.board) and y >=0 and y<len(self.board[x]):
+                            neighbor.append(self.board[x][y])
+                self.board[i][j].neighbors = neighbor
+                
     
     def play(self):
         iteration_curr_speed = 0
@@ -40,7 +55,25 @@ class MainGame:
             self.render()
     
     def iteration(self):
-        pass
+        #GAME_OF_LIFE simulation
+        for i, row in enumerate(self.board):
+            for j, col in enumerate(row):
+                if col.clicked:
+                    if col.live()==2 or col.live()==3:
+                        col.next_state = True
+                    else:
+                        col.next_state = False
+                else:
+                    if col.live() == 3:
+                        col.next_state = True
+                    else:
+                        col.next_state = False
+        for i in self.board:
+            for j in i:
+                j.clicked = j.next_state
+                if j.clicked:
+                    j.typ = 0
+                
             
     def update(self):
         for event in pygame.event.get():
@@ -70,6 +103,7 @@ class MainGame:
             col = position[0]//CELL_SIZE
             row = position[1]//CELL_SIZE
             self.board[col][row].clicked = True
+            self.board[col][row].next_state = True
             self.board[col][row].typ = self.combo_box.selected_index
             
         if self.start_button.rect.collidepoint(position):
@@ -84,6 +118,7 @@ class MainGame:
             for row in self.board:
                 for x in row:
                     x.clicked = False
+                    x.typ = None
         
         if self.combo_box.rect.collidepoint(position):
             self.combo_box.handle_event(position,True)
