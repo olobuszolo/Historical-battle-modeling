@@ -10,9 +10,12 @@ class MainGame:
         self.bgColor = (255,255,255)
         self.background_image = pygame.image.load("resources\\artistic_battlefield_map.png")
         self.bar_image = pygame.image.load("resources\\bar.jpg")
+        pygame_icon = pygame.image.load('resources\\icon.png')
+        pygame.display.set_icon(pygame_icon)
         self.quit_game = False
         
         self.board = [[Cell() for _ in range(WIN_DIMS[1]//CELL_SIZE)] for _ in range(WIN_DIMS[0]//CELL_SIZE)]
+        self.iteration_num = 0
         
         self.start_button = StartButton(self,'Start', 10, 735, True)
         self.start_iteration = False
@@ -23,9 +26,21 @@ class MainGame:
         self.dragging = False
     
     def play(self):
+        iteration_curr_speed = 0
         while not self.quit_game:
+            if self.start_iteration:
+                iteration_speed = self.slider.get_value()
+                if iteration_curr_speed < iteration_speed:
+                    iteration_curr_speed += 1
+                else:
+                    iteration_curr_speed = 0
+                    self.iteration()
+                    self.iteration_num += 1
             self.update()
             self.render()
+    
+    def iteration(self):
+        pass
             
     def update(self):
         for event in pygame.event.get():
@@ -64,6 +79,7 @@ class MainGame:
             self.start_button.get_clicked()
             
         if self.clear_button.rect.collidepoint(position):
+            self.iteration_num = 0
             for row in self.board:
                 for x in row:
                     x.clicked = False
@@ -85,6 +101,7 @@ class MainGame:
         self.clear_button.draw()
         self.combo_box.draw()
         self.slider.draw()
+        pygame.display.set_caption(f"Historical battel modeling ({self.iteration_num} iterations)")
         pygame.display.update()
         
 
