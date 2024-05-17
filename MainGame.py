@@ -70,6 +70,7 @@ class MainGame:
             col = position[0]//CELL_SIZE
             row = position[1]//CELL_SIZE
             self.board[col][row].clicked = True
+            self.board[col][row].typ = self.combo_box.selected_index
             
         if self.start_button.rect.collidepoint(position):
             if self.start_button.text == 'Start':
@@ -96,7 +97,15 @@ class MainGame:
         for i,row in enumerate(self.board):
             for j,col in enumerate(row):
                 if col.clicked == True:
-                    pygame.draw.rect(self.window,(255,0,0),(i*CELL_SIZE,j*CELL_SIZE,10,10))
+                    if self.board[i][j].typ == 0:
+                        pygame.draw.rect(self.window,(255,255,0),(i*CELL_SIZE,j*CELL_SIZE,10,10))
+                    elif self.board[i][j].typ == 1:
+                        pygame.draw.rect(self.window,(255,0,0),(i*CELL_SIZE,j*CELL_SIZE,10,10))
+                    elif self.board[i][j].typ == 2:
+                        pygame.draw.rect(self.window,(0,0,255),(i*CELL_SIZE,j*CELL_SIZE,10,10))
+                    elif self.board[i][j].typ == 3:
+                        pygame.draw.rect(self.window,(0,0,0),(i*CELL_SIZE,j*CELL_SIZE,10,10))  
+                    
         self.start_button.draw()
         self.clear_button.draw()
         self.combo_box.draw()
