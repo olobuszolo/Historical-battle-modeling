@@ -55,6 +55,9 @@ class MainGame:
             self.render()
     
     def iteration(self):
+        for i in self.board:
+            for j in i:
+                j.blocked = False
         for row in self.board:
             for col in row:
                 if col.typ != None:
@@ -62,6 +65,7 @@ class MainGame:
         for i in self.board:
             for j in i:
                 j.typ = j.next_type
+                j.next_type = None
                 
             
     def update(self):
@@ -94,6 +98,7 @@ class MainGame:
             match self.combo_box.selected_index:
                 case 0:
                     self.board[col][row].typ = Warrior(self.board[col][row])
+                    # self.board[col][row].next_type = self.board[col][row].typ
                 case 1:
                     pass
                 case 2:
@@ -113,6 +118,8 @@ class MainGame:
             for row in self.board:
                 for x in row:
                     x.typ = None
+                    x.next_type = None
+                    x.blocked = False
         
         if self.combo_box.rect.collidepoint(position):
             self.combo_box.handle_event(position,True)
