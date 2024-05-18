@@ -55,8 +55,8 @@ class MainGame:
             self.render()
     
     def iteration(self):
-        for i, row in enumerate(self.board):
-            for j, col in enumerate(row):
+        for row in self.board:
+            for col in row:
                 if col.typ != None:
                    col.typ.move()
         for i in self.board:
@@ -125,8 +125,8 @@ class MainGame:
         self.window.blit(self.bar_image,(0,720))
         for i,row in enumerate(self.board):
             for j,col in enumerate(row):
-                if self.board[i][j].typ != None:
-                    if isinstance(self.board[i][j].typ,Warrior):
+                if col.typ != None:
+                    if isinstance(col.typ,Warrior):
                         pygame.draw.rect(self.window,(255,255,0),(i*CELL_SIZE,j*CELL_SIZE,10,10))
                     #TODO
                     # elif self.board[i][j].typ == 1:
