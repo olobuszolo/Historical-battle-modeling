@@ -1,5 +1,5 @@
 import pygame
-from Cell import Cell
+from Cell import Cell, Warrior
 from Buttons import StartButton, ClearButton, ComboBox, Slider
 from CONFIG import *
 
@@ -55,24 +55,13 @@ class MainGame:
             self.render()
     
     def iteration(self):
-        #GAME_OF_LIFE simulation
         for i, row in enumerate(self.board):
             for j, col in enumerate(row):
-                if col.clicked:
-                    if col.live()==2 or col.live()==3:
-                        col.next_state = True
-                    else:
-                        col.next_state = False
-                else:
-                    if col.live() == 3:
-                        col.next_state = True
-                    else:
-                        col.next_state = False
+                if col.typ != None:
+                   col.typ.move()
         for i in self.board:
             for j in i:
-                j.clicked = j.next_state
-                if j.clicked:
-                    j.typ = 0
+                j.typ = j.next_type
                 
             
     def update(self):
@@ -102,9 +91,15 @@ class MainGame:
         if position[0]<WIN_DIMS[0] and position[1]<WIN_DIMS[1] and not self.combo_box.active:
             col = position[0]//CELL_SIZE
             row = position[1]//CELL_SIZE
-            self.board[col][row].clicked = True
-            self.board[col][row].next_state = True
-            self.board[col][row].typ = self.combo_box.selected_index
+            match self.combo_box.selected_index:
+                case 0:
+                    self.board[col][row].typ = Warrior(self.board[col][row])
+                case 1:
+                    pass
+                case 2:
+                    pass
+                case 3:
+                    pass
             
         if self.start_button.rect.collidepoint(position):
             if self.start_button.text == 'Start':
@@ -117,7 +112,6 @@ class MainGame:
             self.iteration_num = 0
             for row in self.board:
                 for x in row:
-                    x.clicked = False
                     x.typ = None
         
         if self.combo_box.rect.collidepoint(position):
@@ -131,15 +125,16 @@ class MainGame:
         self.window.blit(self.bar_image,(0,720))
         for i,row in enumerate(self.board):
             for j,col in enumerate(row):
-                if col.clicked == True:
-                    if self.board[i][j].typ == 0:
+                if self.board[i][j].typ != None:
+                    if isinstance(self.board[i][j].typ,Warrior):
                         pygame.draw.rect(self.window,(255,255,0),(i*CELL_SIZE,j*CELL_SIZE,10,10))
-                    elif self.board[i][j].typ == 1:
-                        pygame.draw.rect(self.window,(255,0,0),(i*CELL_SIZE,j*CELL_SIZE,10,10))
-                    elif self.board[i][j].typ == 2:
-                        pygame.draw.rect(self.window,(0,0,255),(i*CELL_SIZE,j*CELL_SIZE,10,10))
-                    elif self.board[i][j].typ == 3:
-                        pygame.draw.rect(self.window,(0,0,0),(i*CELL_SIZE,j*CELL_SIZE,10,10))  
+                    #TODO
+                    # elif self.board[i][j].typ == 1:
+                    #     pygame.draw.rect(self.window,(255,0,0),(i*CELL_SIZE,j*CELL_SIZE,10,10))
+                    # elif self.board[i][j].typ == 2:
+                    #     pygame.draw.rect(self.window,(0,0,255),(i*CELL_SIZE,j*CELL_SIZE,10,10))
+                    # elif self.board[i][j].typ == 3:
+                    #     pygame.draw.rect(self.window,(0,0,0),(i*CELL_SIZE,j*CELL_SIZE,10,10))  
                     
         self.start_button.draw()
         self.clear_button.draw()
