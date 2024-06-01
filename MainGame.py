@@ -1,22 +1,29 @@
 import pygame
-from Cell import Cell, Warrior
+from Cell import *
 from Buttons import StartButton, ClearButton, ComboBox, Slider
 from CONFIG import *
+from pathlib import PurePath
 
 class MainGame:
     def __init__(self):
         pygame.init()
         self.window = pygame.display.set_mode((WIN_DIMS[0],WIN_DIMS[1]+MENU_SIZE))
         self.bgColor = (255,255,255)
-        self.background_image = pygame.image.load("resources\\artistic_battlefield_map.png")
-        self.bar_image = pygame.image.load("resources\\bar.jpg")
-        pygame_icon = pygame.image.load('resources\\icon.png')
+        self.background_image = pygame.image.load(PurePath('./resources/artistic_battlefield_map.png'))
+        self.bar_image = pygame.image.load(PurePath('./resources/bar.jpg'))
+        pygame_icon = pygame.image.load(PurePath('./resources/icon.png'))
         pygame.display.set_icon(pygame_icon)
         self.quit_game = False
         
         self.board = [[Cell((i,j)) for i in range(WIN_DIMS[1]//CELL_SIZE)] for j in range(WIN_DIMS[0]//CELL_SIZE)]
         self.add_neighbor()
         self.iteration_num = 0
+
+        # teams
+        self.teams = {
+            TEAM_A: [],
+            TEAM_B: []
+        }
         
         self.start_button = StartButton(self,'Start', 10, 735, True)
         self.start_iteration = False
@@ -92,27 +99,43 @@ class MainGame:
                     self.slider.handle_event(event)
 
     def handle_click(self, position):
+
+        ### add agent ###
+
         if position[0]<WIN_DIMS[0] and position[1]<WIN_DIMS[1] and not self.combo_box.active:
             col = position[0]//CELL_SIZE
             row = position[1]//CELL_SIZE
-            match self.combo_box.selected_index:
-                case 0:
-                    self.board[col][row].typ = Warrior(self.board[col][row])
-                    # self.board[col][row].next_type = self.board[col][row].typ
-                case 1:
-                    pass
-                case 2:
-                    pass
-                case 3:
-                    pass
-            
+
+            if self.board[col][row].typ == None:
+                match self.combo_box.selected_index:
+
+                    # warrior
+                    case 0:
+                        self.board[col][row].typ = Warrior(self.board[col][row], TEAM_A)
+                        self.teams[TEAM_A].append(self.board[col][row].typ)
+                    case 1:
+                        self.board[col][row].typ = Warrior(self.board[col][row], TEAM_B)
+                        self.teams[TEAM_B].append(self.board[col][row].typ)
+
+                    # hussar
+                    case 2:
+                        self.board[col][row].typ = Hussar(self.board[col][row], TEAM_A, self.teams)
+                        self.teams[TEAM_A].append(self.board[col][row].typ)
+                    case 3:
+                        self.board[col][row].typ = Hussar(self.board[col][row], TEAM_B, self.teams)
+                        self.teams[TEAM_B].append(self.board[col][row].typ)
+        
+        ### start ###
+
         if self.start_button.rect.collidepoint(position):
             if self.start_button.text == 'Start':
                 self.start_iteration = True
             else:
                 self.start_iteration = False
             self.start_button.get_clicked()
-            
+        
+        ### clear ###
+
         if self.clear_button.rect.collidepoint(position):
             self.iteration_num = 0
             for row in self.board:
@@ -120,6 +143,8 @@ class MainGame:
                     x.typ = None
                     x.next_type = None
                     x.blocked = False
+            self.teams[TEAM_A] = []
+            self.teams[TEAM_B] = []
         
         if self.combo_box.rect.collidepoint(position):
             self.combo_box.handle_event(position,True)
@@ -128,20 +153,27 @@ class MainGame:
     
     def render(self):
         self.window.fill(self.bgColor)
-        self.window.blit(self.background_image,(0,0))
-        self.window.blit(self.bar_image,(0,720))
-        for i,row in enumerate(self.board):
-            for j,col in enumerate(row):
-                if col.typ != None:
-                    if isinstance(col.typ,Warrior):
-                        pygame.draw.rect(self.window,(255,255,0),(i*CELL_SIZE,j*CELL_SIZE,10,10))
-                    #TODO
-                    # elif self.board[i][j].typ == 1:
-                    #     pygame.draw.rect(self.window,(255,0,0),(i*CELL_SIZE,j*CELL_SIZE,10,10))
-                    # elif self.board[i][j].typ == 2:
-                    #     pygame.draw.rect(self.window,(0,0,255),(i*CELL_SIZE,j*CELL_SIZE,10,10))
-                    # elif self.board[i][j].typ == 3:
-                    #     pygame.draw.rect(self.window,(0,0,0),(i*CELL_SIZE,j*CELL_SIZE,10,10))  
+        self.window.blit(self.background_image, (0, 0))
+        self.window.blit(self.bar_image, (0, 720))
+
+        for i, row in enumerate(self.board):
+            for j, cell in enumerate(row):
+                if cell.typ is not None:
+                    rect_position = (i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+
+                    # warrior
+                    if isinstance(cell.typ, Warrior):
+                        if cell.typ.team == TEAM_A:
+                            pygame.draw.rect(self.window, (255, 255, 0), (i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+                        else:
+                            pygame.draw.rect(self.window, (255, 0, 0), (i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+
+                    # hussar
+                    elif isinstance(cell.typ, Hussar):
+                        if cell.typ.team == TEAM_A:
+                            pygame.draw.rect(self.window, HUSSAR_COLOR_A, rect_position)
+                        else:
+                            pygame.draw.rect(self.window, HUSSAR_COLOR_B, rect_position)
                     
         self.start_button.draw()
         self.clear_button.draw()
