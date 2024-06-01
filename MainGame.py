@@ -3,6 +3,7 @@ from Cell import *
 from Buttons import StartButton, ClearButton, ComboBox, Slider
 from CONFIG import *
 import time
+
 class MainGame:
     def __init__(self):
         pygame.init()
@@ -15,7 +16,7 @@ class MainGame:
         self.quit_game = False
         
         self.field = [[0 for _ in range(WIN_DIMS[1]//CELL_SIZE)] for _ in range(WIN_DIMS[0]//CELL_SIZE)]
-        self.board = [[Cell((i,j)) for i in range(WIN_DIMS[1]//CELL_SIZE)] for j in range(WIN_DIMS[0]//CELL_SIZE)]
+        self.board = [[Cell((i,j )) for i in range(WIN_DIMS[1]//CELL_SIZE)] for j in range(WIN_DIMS[0]//CELL_SIZE)]
         self.add_neighbour()
         self.add_neighbour_fight()
         self.iteration_num = 0
@@ -29,7 +30,13 @@ class MainGame:
         self.slider = Slider(self,490,735,150,25,0,100)
     
         self.dragging = False
-    
+
+        self.warior_A_image = pygame.transform.scale(pygame.image.load("resources\\polish_warior.jpg"), (CELL_SIZE, CELL_SIZE))
+        self.warior_B_image = pygame.transform.scale(pygame.image.load("resources\\germa_warrior.png"), (CELL_SIZE, CELL_SIZE))
+        self.artillery_A_image = pygame.transform.scale(pygame.image.load("resources\\polish_artillery.png"), (CELL_SIZE, CELL_SIZE))
+        self.artillery_B_image = pygame.transform.scale(pygame.image.load("resources\\german_artillery.png"), (CELL_SIZE, CELL_SIZE))
+
+
     #MOORE
     def add_neighbour_fight(self):
         for i in range(len(self.board)):
@@ -71,6 +78,7 @@ class MainGame:
             self.update()
             self.render()
 
+
     def calculate_field_warrior(self, team):
         toCheck = []
         for warrior in team:
@@ -110,8 +118,6 @@ class MainGame:
             for cell in row:
                 if cell.typ is not None and cell.typ.health <= 0:
                     cell.typ = None
-        print(len(self.team_A))
-        print(len(self.team_B))
 
         
     def iteration_A(self):
@@ -162,9 +168,11 @@ class MainGame:
                         self.team_B.append(self.board[col][row].typ)
 
                     case 2:
-                        pass
+                        self.board[col][row].typ = Artillery(self.board[col][row], TEAM_A, self.board, self)
+                        self.team_A.append(self.board[col][row].typ)
                     case 3:
-                        pass
+                        self.board[col][row].typ = Artillery(self.board[col][row], TEAM_B, self.board, self)
+                        self.team_B.append(self.board[col][row].typ)
             
         if self.start_button.rect.collidepoint(position):
             if self.start_button.text == 'Start':
@@ -197,9 +205,14 @@ class MainGame:
                 if cell.typ is not None:
                     if isinstance(cell.typ, Warrior):
                         if cell.typ.team == TEAM_A:
-                            pygame.draw.rect(self.window, (255, 255, 0), (i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+                            self.window.blit(self.warior_A_image, (i * CELL_SIZE, j * CELL_SIZE))
                         else:
-                            pygame.draw.rect(self.window, (255, 0, 0), (i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+                            self.window.blit(self.warior_B_image, (i * CELL_SIZE, j * CELL_SIZE))
+                    if isinstance(cell.typ, Artillery):
+                        if cell.typ.team == TEAM_A: 
+                            self.window.blit(self.artillery_A_image, (i * CELL_SIZE, j * CELL_SIZE))
+                        else:
+                            self.window.blit(self.artillery_B_image, (i * CELL_SIZE, j * CELL_SIZE))
 
         self.start_button.draw()
         self.clear_button.draw()
