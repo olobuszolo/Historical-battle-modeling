@@ -2,6 +2,7 @@ import pygame
 from Cell import *
 from Buttons import StartButton, ClearButton, ComboBox, Slider
 from CONFIG import *
+import time
 from pathlib import PurePath
 
 class MainGame:
@@ -15,8 +16,10 @@ class MainGame:
         pygame.display.set_icon(pygame_icon)
         self.quit_game = False
         
-        self.board = [[Cell((i,j)) for i in range(WIN_DIMS[1]//CELL_SIZE)] for j in range(WIN_DIMS[0]//CELL_SIZE)]
+        self.field = [[0 for _ in range(WIN_DIMS[1]//CELL_SIZE)] for _ in range(WIN_DIMS[0]//CELL_SIZE)]
+        self.board = [[Cell((i,j )) for i in range(WIN_DIMS[1]//CELL_SIZE)] for j in range(WIN_DIMS[0]//CELL_SIZE)]
         self.add_neighbor()
+        self.add_neighbor_fight()
         self.iteration_num = 0
 
         # teams
@@ -32,20 +35,39 @@ class MainGame:
         self.slider = Slider(self,490,735,150,25,0,100)
     
         self.dragging = False
-    
+
+        self.warior_A_image = pygame.transform.scale(pygame.image.load("resources\\polish_warior.jpg"), (CELL_SIZE, CELL_SIZE))
+        self.warior_B_image = pygame.transform.scale(pygame.image.load("resources\\germa_warrior.png"), (CELL_SIZE, CELL_SIZE))
+        self.artillery_A_image = pygame.transform.scale(pygame.image.load("resources\\polish_artillery.png"), (CELL_SIZE, CELL_SIZE))
+        self.artillery_B_image = pygame.transform.scale(pygame.image.load("resources\\german_artillery.png"), (CELL_SIZE, CELL_SIZE))
+
+
     #MOORE
-    def add_neighbor(self):
+    def add_neighbor_fight(self):
         for i in range(len(self.board)):
             for j in range(len(self.board[i])):
-                neighbor = []
+                fight_neighbors = []
                 for x in range(i-1,i+2):
                     for y in range(j-1,j+2):
                         if i==x and y == j: 
                             continue
                         if x>=0 and x<len(self.board) and y >=0 and y<len(self.board[x]):
-                            neighbor.append(self.board[x][y])
-                self.board[i][j].neighbors = neighbor
+                            fight_neighbors.append(self.board[x][y])
+                self.board[i][j].fight_neighbors = fight_neighbors
                 
+    def add_neighbor(self):
+        for i in range(len(self.board)):
+            for j in range(len(self.board[i])):
+                neighbor = []
+                if i > 0:
+                    neighbor.append(self.board[i - 1][j])  # North
+                if i < len(self.board) - 1:
+                    neighbor.append(self.board[i + 1][j])  # South
+                if j > 0:
+                    neighbor.append(self.board[i][j - 1])  # West
+                if j < len(self.board[i]) - 1:
+                    neighbor.append(self.board[i][j + 1])  # East
+                self.board[i][j].neighbors = neighbor
     
     def play(self):
         iteration_curr_speed = 0
@@ -60,20 +82,59 @@ class MainGame:
                     self.iteration_num += 1
             self.update()
             self.render()
+
+
+    def calculate_field_warrior(self, team):
+        toCheck = []
+        for warrior in team:
+            warrior.cell.staticField = 0
+            for neighbor in warrior.cell.neighbors:
+                if neighbor not in toCheck:
+                    toCheck.append(neighbor)
+        
+        while toCheck:
+            currPoint = toCheck[0]
+            if currPoint.calc_static_field():
+                for neighbor in currPoint.neighbors:
+                    if neighbor not in toCheck:
+                        toCheck.append(neighbor)
+            toCheck.pop(0)
+    
+    def field_clean(self):
+        for row in self.board:
+            for cell in row:
+                cell.staticField = SFMAX
     
     def iteration(self):
+        self.field_clean()
         for i in self.board:
             for j in i:
                 j.blocked = False
+
+        self.iteration_A()
+        self.field_clean()
+        self.iteration_B()
+        self.field_clean()
+
+        self.team_A = [warrior for warrior in self.team_A if warrior.health > 0]
+        self.team_B = [warrior for warrior in self.team_B if warrior.health > 0]
+        
         for row in self.board:
-            for col in row:
-                if col.typ != None:
-                   col.typ.move()
-        for i in self.board:
-            for j in i:
-                j.typ = j.next_type
-                j.next_type = None
-                
+            for cell in row:
+                if cell.typ is not None and cell.typ.health <= 0:
+                    cell.typ = None
+
+        
+    def iteration_A(self):
+        self.calculate_field_warrior(self.team_B)
+        for elems in self.team_A:
+            elems.update()
+
+    def iteration_B(self):
+        self.calculate_field_warrior(self.team_A)
+        for elems in self.team_B:
+            elems.update()
+
             
     def update(self):
         for event in pygame.event.get():
@@ -124,6 +185,14 @@ class MainGame:
                     case 3:
                         self.board[col][row].typ = Hussar(self.board[col][row], TEAM_B, self.teams)
                         self.teams[TEAM_B].append(self.board[col][row].typ)
+                    # artillery
+                    case 4:
+                        self.board[col][row].typ = Artillery(self.board[col][row], TEAM_A, self.board, self)
+                        self.teams[TEAM_A].append(self.board[col][row].typ)
+                    case 5:
+                        self.board[col][row].typ = Artillery(self.board[col][row], TEAM_B, self.board, self)
+                        self.teams[TEAM_B].append(self.board[col][row].typ)
+                    
         
         ### start ###
 
@@ -151,6 +220,7 @@ class MainGame:
         else:
             self.combo_box.handle_event(position,False)
     
+
     def render(self):
         self.window.fill(self.bgColor)
         self.window.blit(self.background_image, (0, 0))
@@ -161,26 +231,27 @@ class MainGame:
                 if cell.typ is not None:
                     rect_position = (i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE)
 
-                    # warrior
                     if isinstance(cell.typ, Warrior):
                         if cell.typ.team == TEAM_A:
-                            pygame.draw.rect(self.window, (255, 255, 0), (i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+                            self.window.blit(self.warior_A_image, (i * CELL_SIZE, j * CELL_SIZE))
                         else:
-                            pygame.draw.rect(self.window, (255, 0, 0), (i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE))
-
-                    # hussar
+                            self.window.blit(self.warior_B_image, (i * CELL_SIZE, j * CELL_SIZE))
+                    if isinstance(cell.typ, Artillery):
+                        if cell.typ.team == TEAM_A: 
+                            self.window.blit(self.artillery_A_image, (i * CELL_SIZE, j * CELL_SIZE))
+                        else:
+                            self.window.blit(self.artillery_B_image, (i * CELL_SIZE, j * CELL_SIZE))
                     elif isinstance(cell.typ, Hussar):
                         if cell.typ.team == TEAM_A:
                             pygame.draw.rect(self.window, HUSSAR_COLOR_A, rect_position)
                         else:
-                            pygame.draw.rect(self.window, HUSSAR_COLOR_B, rect_position)
+                            pygame.draw.rect(self.window, HUSSAR_COLOR_B, rect_position)        
+                            
+                    
                     
         self.start_button.draw()
         self.clear_button.draw()
         self.combo_box.draw()
         self.slider.draw()
-        pygame.display.set_caption(f"Historical battel modeling ({self.iteration_num} iterations)")
+        pygame.display.set_caption(f"Historical battle modeling ({self.iteration_num} iterations)")
         pygame.display.update()
-        
-
-x = MainGame()

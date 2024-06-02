@@ -3,6 +3,7 @@ MENU_SIZE = 50
 CELL_SIZE = 10
 TEAM_A = 'Poland'
 TEAM_B = 'Germany'
+
 WARRIOR = 'Warrior'
 HUSSAR = 'Hussar'
 SFMAX = 1280
@@ -12,6 +13,11 @@ SFMAX = 1280
 # warrior
 WARRIOR_HEALTH = 10
 MAX_DAMAGE_WARIOR = 6
+
+# artillery
+ARTILLERY_HEALTH = 20
+MAX_ARTILLERY_DAMAGE = 16
+ARTILLERY_RANGE = 30
 
 # hussar
 HUSSAR_HEALTH = 20
