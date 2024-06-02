@@ -178,7 +178,6 @@ class Artillery:
             self.cell.next_type = None     
 
     def update(self):
-        print(self.game.iteration_num)
         if self.last_shoot + 2 <= self.game.iteration_num:
             self.fight_with()
         if self.last_move + 4 <= self.game.iteration_num and self.game.iteration_num != self.last_shoot:
