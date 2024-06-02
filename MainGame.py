@@ -116,8 +116,8 @@ class MainGame:
         self.iteration_B()
         self.field_clean()
 
-        self.team_A = [warrior for warrior in self.team_A if warrior.health > 0]
-        self.team_B = [warrior for warrior in self.team_B if warrior.health > 0]
+        self.teams[TEAM_A] = [warrior for warrior in self.teams[TEAM_A] if warrior.health > 0]
+        self.teams[TEAM_B] = [warrior for warrior in self.teams[TEAM_B] if warrior.health > 0]
         
         for row in self.board:
             for cell in row:
@@ -126,13 +126,13 @@ class MainGame:
 
         
     def iteration_A(self):
-        self.calculate_field_warrior(self.team_B)
-        for elems in self.team_A:
+        self.calculate_field_warrior(self.teams[TEAM_B])
+        for elems in self.teams[TEAM_A]:
             elems.update()
 
     def iteration_B(self):
-        self.calculate_field_warrior(self.team_A)
-        for elems in self.team_B:
+        self.calculate_field_warrior(self.teams[TEAM_A])
+        for elems in self.teams[TEAM_B]:
             elems.update()
 
             

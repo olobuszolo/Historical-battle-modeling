@@ -184,11 +184,6 @@ class Artillery:
         if self.last_move + 4 <= self.game.iteration_num and self.game.iteration_num != self.last_shoot:
             self.move()
 
-
-
-
-def random_int(mini, maxi):
-    return random.randint(mini, maxi)
 class Hussar:
     def __init__(self, cell, team, teams):
         self.cell = cell
@@ -238,6 +233,9 @@ class Hussar:
             # slow down (random)
             if random.randint(1, 10) <= HUSSAR_SLOW_DOWN_CHANCE:
                 break 
+    def update(self):
+        self.move()
+
         
 
 def get_distance(x1, y1, x2, y2):
@@ -254,3 +252,6 @@ def get_move_cell(cell1, cell2):
             closest_nei = nei
     
     return closest_nei
+
+def random_int(mini, maxi):
+    return random.randint(mini, maxi)
