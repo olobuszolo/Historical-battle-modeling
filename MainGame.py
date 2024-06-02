@@ -40,6 +40,7 @@ class MainGame:
             (4, "Artillery Team A"),
             (5, "Artillery Team B")
         ], 0)
+
         self.slider = Slider(self,490,735,150,25,0,100)
     
         self.dragging = False
@@ -200,6 +201,7 @@ class MainGame:
                     case 3:
                         self.board[col][row].typ = Hussar(self.board[col][row], TEAM_B, self.teams)
                         self.teams[TEAM_B].append(self.board[col][row].typ)
+
                     # artillery
                     case 4:
                         self.board[col][row].typ = Artillery(self.board[col][row], TEAM_A, self.board, self)
