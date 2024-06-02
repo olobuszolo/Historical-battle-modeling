@@ -31,15 +31,25 @@ class MainGame:
         self.start_button = StartButton(self,'Start', 10, 735, True)
         self.start_iteration = False
         self.clear_button = ClearButton(self,'Clear', 170, 735, True)
-        self.combo_box = ComboBox(self, 330, 735, [0, 1, 2, 3, 4, 5], 0)
+        # self.combo_box = ComboBox(self,330,735,[0,1,2,3,4,5],0)
+        self.combo_box = ComboBox(self, 330, 735, [
+            (0, "Warrior Team A"),
+            (1, "Warrior Team B"),
+            (2, "Hussar Team A"),
+            (3, "Hussar Team B"),
+            (4, "Artillery Team A"),
+            (5, "Artillery Team B")
+        ], 0)
+
         self.slider = Slider(self,490,735,150,25,0,100)
     
         self.dragging = False
 
-        self.warior_A_image = pygame.transform.scale(pygame.image.load(PurePath('./resources/polish_warior.jpg')), (CELL_SIZE, CELL_SIZE))
-        self.warior_B_image = pygame.transform.scale(pygame.image.load(PurePath('./resources/germa_warrior.png')), (CELL_SIZE, CELL_SIZE))
-        self.artillery_A_image = pygame.transform.scale(pygame.image.load(PurePath('./resources/polish_artillery.png')), (CELL_SIZE, CELL_SIZE))
-        self.artillery_B_image = pygame.transform.scale(pygame.image.load(PurePath('./resources/german_artillery.png')), (CELL_SIZE, CELL_SIZE))
+        self.warior_A_image = pygame.transform.scale(pygame.image.load("resources\\polish_warior.jpg"), (CELL_SIZE, CELL_SIZE))
+        self.warior_B_image = pygame.transform.scale(pygame.image.load("resources\\germa_warrior.png"), (CELL_SIZE, CELL_SIZE))
+        self.artillery_A_image = pygame.transform.scale(pygame.image.load("resources\\polish_artillery.png"), (CELL_SIZE, CELL_SIZE))
+        self.artillery_B_image = pygame.transform.scale(pygame.image.load("resources\\german_artillery.png"), (CELL_SIZE, CELL_SIZE))
+        self.explosion_image = pygame.transform.scale(pygame.image.load("resources\\explosion.png"), (CELL_SIZE, CELL_SIZE))
 
 
     #MOORE
@@ -104,8 +114,14 @@ class MainGame:
         for row in self.board:
             for cell in row:
                 cell.staticField = SFMAX
+
+    def clean_is_shooted(self):
+        for row in self.board:
+            for cell in row:
+                cell.is_shooted = False
     
     def iteration(self):
+        self.clean_is_shooted()
         self.field_clean()
         for i in self.board:
             for j in i:
@@ -242,11 +258,14 @@ class MainGame:
                             self.window.blit(self.artillery_A_image, (i * CELL_SIZE, j * CELL_SIZE))
                         else:
                             self.window.blit(self.artillery_B_image, (i * CELL_SIZE, j * CELL_SIZE))
-                    elif isinstance(cell.typ, Hussar):
+                    if isinstance(cell.typ, Hussar):
                         if cell.typ.team == TEAM_A:
                             pygame.draw.rect(self.window, HUSSAR_COLOR_A, rect_position)
                         else:
                             pygame.draw.rect(self.window, HUSSAR_COLOR_B, rect_position)        
+                    
+                    if cell.is_shooted:
+                        self.window.blit(self.explosion_image, rect_position)
                             
                     
                     

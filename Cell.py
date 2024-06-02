@@ -15,6 +15,7 @@ class Cell:
         self.fight_neighbors = []
         self.blocked = False
         self.staticField = SFMAX
+        self.is_shooted = False
 
     def calc_static_field(self):
         min_static_field = SFMAX
@@ -87,6 +88,7 @@ class Warrior:
             self.fight_process(num_of_opp, current_opponents)
 
     def update(self):
+        print(self.health)
         self.fight_with()
         if not self.fight:
             self.move()
@@ -121,7 +123,7 @@ class Artillery:
                 x, y = cell.position
                 curr_teammates = self.count_team_neighbors(cell)
                 distance = math.sqrt((cx - x)**2 + (cy - y)**2)
-                if distance <= self.engagement_range and cell.staticField  + 2*curr_teammates< min_field:
+                if distance <= self.engagement_range and cell.staticField  + 2*curr_teammates <= min_field:
                     min_field = cell.staticField
                     target_cell = cell
 
@@ -134,6 +136,7 @@ class Artillery:
 
     def full_damage_process(self, target):
         if target and target.typ:
+            target.is_shooted = True
             target.typ.health -= random.randint(1, MAX_ARTILLERY_DAMAGE)
             self.last_shoot = self.game.iteration_num
         for nei in self.cell.fight_neighbors:
@@ -180,7 +183,7 @@ class Artillery:
     def update(self):
         if self.last_shoot + 2 <= self.game.iteration_num:
             self.fight_with()
-        if self.last_move + 4 <= self.game.iteration_num and self.game.iteration_num != self.last_shoot:
+        if self.last_move + 6 <= self.game.iteration_num:
             self.move()
 
 class Hussar:
