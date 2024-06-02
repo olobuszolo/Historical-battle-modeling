@@ -3,25 +3,30 @@ from Cell import *
 from Buttons import StartButton, ClearButton, ComboBox, Slider
 from CONFIG import *
 import time
+from pathlib import PurePath
 
 class MainGame:
     def __init__(self):
         pygame.init()
         self.window = pygame.display.set_mode((WIN_DIMS[0],WIN_DIMS[1]+MENU_SIZE))
         self.bgColor = (255,255,255)
-        self.background_image = pygame.image.load("resources\\artistic_battlefield_map.png")
-        self.bar_image = pygame.image.load("resources\\bar.jpg")
-        pygame_icon = pygame.image.load('resources\\icon.png')
+        self.background_image = pygame.image.load(PurePath('./resources/artistic_battlefield_map.png'))
+        self.bar_image = pygame.image.load(PurePath('./resources/bar.jpg'))
+        pygame_icon = pygame.image.load(PurePath('./resources/icon.png'))
         pygame.display.set_icon(pygame_icon)
         self.quit_game = False
         
         self.field = [[0 for _ in range(WIN_DIMS[1]//CELL_SIZE)] for _ in range(WIN_DIMS[0]//CELL_SIZE)]
         self.board = [[Cell((i,j )) for i in range(WIN_DIMS[1]//CELL_SIZE)] for j in range(WIN_DIMS[0]//CELL_SIZE)]
-        self.add_neighbour()
-        self.add_neighbour_fight()
+        self.add_neighbor()
+        self.add_neighbor_fight()
         self.iteration_num = 0
-        self.team_A = []
-        self.team_B = []
+
+        # teams
+        self.teams = {
+            TEAM_A: [],
+            TEAM_B: []
+        }
         
         self.start_button = StartButton(self,'Start', 10, 735, True)
         self.start_iteration = False
@@ -38,31 +43,31 @@ class MainGame:
 
 
     #MOORE
-    def add_neighbour_fight(self):
+    def add_neighbor_fight(self):
         for i in range(len(self.board)):
             for j in range(len(self.board[i])):
-                fight_neighbours = []
+                fight_neighbors = []
                 for x in range(i-1,i+2):
                     for y in range(j-1,j+2):
                         if i==x and y == j: 
                             continue
                         if x>=0 and x<len(self.board) and y >=0 and y<len(self.board[x]):
-                            fight_neighbours.append(self.board[x][y])
-                self.board[i][j].fight_neighbours = fight_neighbours
+                            fight_neighbors.append(self.board[x][y])
+                self.board[i][j].fight_neighbors = fight_neighbors
                 
-    def add_neighbour(self):
+    def add_neighbor(self):
         for i in range(len(self.board)):
             for j in range(len(self.board[i])):
-                neighbour = []
+                neighbor = []
                 if i > 0:
-                    neighbour.append(self.board[i - 1][j])  # North
+                    neighbor.append(self.board[i - 1][j])  # North
                 if i < len(self.board) - 1:
-                    neighbour.append(self.board[i + 1][j])  # South
+                    neighbor.append(self.board[i + 1][j])  # South
                 if j > 0:
-                    neighbour.append(self.board[i][j - 1])  # West
+                    neighbor.append(self.board[i][j - 1])  # West
                 if j < len(self.board[i]) - 1:
-                    neighbour.append(self.board[i][j + 1])  # East
-                self.board[i][j].neighbours = neighbour
+                    neighbor.append(self.board[i][j + 1])  # East
+                self.board[i][j].neighbors = neighbor
     
     def play(self):
         iteration_curr_speed = 0
@@ -83,16 +88,16 @@ class MainGame:
         toCheck = []
         for warrior in team:
             warrior.cell.staticField = 0
-            for neighbour in warrior.cell.neighbours:
-                if neighbour not in toCheck:
-                    toCheck.append(neighbour)
+            for neighbor in warrior.cell.neighbors:
+                if neighbor not in toCheck:
+                    toCheck.append(neighbor)
         
         while toCheck:
             currPoint = toCheck[0]
             if currPoint.calc_static_field():
-                for neighbour in currPoint.neighbours:
-                    if neighbour not in toCheck:
-                        toCheck.append(neighbour)
+                for neighbor in currPoint.neighbors:
+                    if neighbor not in toCheck:
+                        toCheck.append(neighbor)
             toCheck.pop(0)
     
     def field_clean(self):
@@ -155,32 +160,51 @@ class MainGame:
                     self.slider.handle_event(event)
 
     def handle_click(self, position):
+
+        ### add agent ###
+
         if position[0]<WIN_DIMS[0] and position[1]<WIN_DIMS[1] and not self.combo_box.active:
             col = position[0]//CELL_SIZE
             row = position[1]//CELL_SIZE
+
             if self.board[col][row].typ == None:
                 match self.combo_box.selected_index:
+
+                    # warrior
                     case 0:
                         self.board[col][row].typ = Warrior(self.board[col][row], TEAM_A)
-                        self.team_A.append(self.board[col][row].typ)
+                        self.teams[TEAM_A].append(self.board[col][row].typ)
                     case 1:
                         self.board[col][row].typ = Warrior(self.board[col][row], TEAM_B)
-                        self.team_B.append(self.board[col][row].typ)
+                        self.teams[TEAM_B].append(self.board[col][row].typ)
 
+                    # hussar
                     case 2:
-                        self.board[col][row].typ = Artillery(self.board[col][row], TEAM_A, self.board, self)
-                        self.team_A.append(self.board[col][row].typ)
+                        self.board[col][row].typ = Hussar(self.board[col][row], TEAM_A, self.teams)
+                        self.teams[TEAM_A].append(self.board[col][row].typ)
                     case 3:
+                        self.board[col][row].typ = Hussar(self.board[col][row], TEAM_B, self.teams)
+                        self.teams[TEAM_B].append(self.board[col][row].typ)
+                    # artillery
+                    case 4:
+                        self.board[col][row].typ = Artillery(self.board[col][row], TEAM_A, self.board, self)
+                        self.teams[TEAM_A].append(self.board[col][row].typ)
+                    case 5:
                         self.board[col][row].typ = Artillery(self.board[col][row], TEAM_B, self.board, self)
-                        self.team_B.append(self.board[col][row].typ)
-            
+                        self.teams[TEAM_B].append(self.board[col][row].typ)
+                    
+        
+        ### start ###
+
         if self.start_button.rect.collidepoint(position):
             if self.start_button.text == 'Start':
                 self.start_iteration = True
             else:
                 self.start_iteration = False
             self.start_button.get_clicked()
-            
+        
+        ### clear ###
+
         if self.clear_button.rect.collidepoint(position):
             self.iteration_num = 0
             for row in self.board:
@@ -188,6 +212,8 @@ class MainGame:
                     x.typ = None
                     x.next_type = None
                     x.blocked = False
+            self.teams[TEAM_A] = []
+            self.teams[TEAM_B] = []
         
         if self.combo_box.rect.collidepoint(position):
             self.combo_box.handle_event(position,True)
@@ -203,6 +229,8 @@ class MainGame:
         for i, row in enumerate(self.board):
             for j, cell in enumerate(row):
                 if cell.typ is not None:
+                    rect_position = (i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+
                     if isinstance(cell.typ, Warrior):
                         if cell.typ.team == TEAM_A:
                             self.window.blit(self.warior_A_image, (i * CELL_SIZE, j * CELL_SIZE))
@@ -213,7 +241,14 @@ class MainGame:
                             self.window.blit(self.artillery_A_image, (i * CELL_SIZE, j * CELL_SIZE))
                         else:
                             self.window.blit(self.artillery_B_image, (i * CELL_SIZE, j * CELL_SIZE))
-
+                    elif isinstance(cell.typ, Hussar):
+                        if cell.typ.team == TEAM_A:
+                            pygame.draw.rect(self.window, HUSSAR_COLOR_A, rect_position)
+                        else:
+                            pygame.draw.rect(self.window, HUSSAR_COLOR_B, rect_position)        
+                            
+                    
+                    
         self.start_button.draw()
         self.clear_button.draw()
         self.combo_box.draw()
