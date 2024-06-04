@@ -22,6 +22,12 @@ class MainGame:
         self.add_neighbor_fight()
         self.iteration_num = 0
 
+        # sun/fog
+        self.last_fog = 0
+        self.last_sun = 0
+        self.fog_work = False
+        self.sun_work = False
+        self.sun_team = None
         # teams
         self.teams = {
             TEAM_A: [],
@@ -31,7 +37,6 @@ class MainGame:
         self.start_button = StartButton(self,'Start', 10, 735, True)
         self.start_iteration = False
         self.clear_button = ClearButton(self,'Clear', 170, 735, True)
-        # self.combo_box = ComboBox(self,330,735,[0,1,2,3,4,5],0)
         self.combo_box = ComboBox(self, 330, 735, [
             (0, "Warrior Team A"),
             (1, "Warrior Team B"),
@@ -120,9 +125,33 @@ class MainGame:
             for cell in row:
                 cell.is_shooted = False
     
+    def fog(self):
+        if random_int(1, 10) <= 3:
+            self.fog_work = True
+            self.last_fog = self.iteration_num
+
+    def sun(self):
+        if random_int(1, 10) <= 3:
+            self.sun_work = True
+            self.last_sun = self.iteration_num
+            self.sun_team = random.choice([TEAM_A, TEAM_B])
+            # print(self.sun_team)
+    
     def iteration(self):
         self.clean_is_shooted()
         self.field_clean()
+
+        if self.last_sun == self.iteration_num - 3:
+            self.sun_work = False
+            self.sun_team = None
+        if self.last_fog == self.iteration_num - 5:
+            self.fog_work = False     
+
+        if self.last_fog + 15 <= self.iteration_num and not self.sun_work:
+            self.fog()
+        elif self.last_sun + 13 <= self.iteration_num and not self.fog_work:
+            self.sun()
+
         for i in self.board:
             for j in i:
                 j.blocked = False
@@ -139,6 +168,8 @@ class MainGame:
             for cell in row:
                 if cell.typ is not None and cell.typ.health <= 0:
                     cell.typ = None
+
+
 
         
     def iteration_A(self):
@@ -245,8 +276,8 @@ class MainGame:
 
         for i, row in enumerate(self.board):
             for j, cell in enumerate(row):
+                rect_position = (i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE)
                 if cell.typ is not None:
-                    rect_position = (i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE)
 
                     if isinstance(cell.typ, Warrior):
                         if cell.typ.team == TEAM_A:
@@ -264,8 +295,8 @@ class MainGame:
                         else:
                             pygame.draw.rect(self.window, HUSSAR_COLOR_B, rect_position)        
                     
-                    if cell.is_shooted:
-                        self.window.blit(self.explosion_image, rect_position)
+                if cell.is_shooted:
+                    self.window.blit(self.explosion_image, rect_position)
                             
                     
                     
