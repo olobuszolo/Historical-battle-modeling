@@ -224,21 +224,23 @@ class Hussar:
 
         for _ in range(HUSSAR_SPEED):
             new_cell = get_move_cell(self.cell, closest_target.cell)
-
+  
             new_cell.blocked = True
-            new_cell.next_type = self
+            new_cell.next_type = self.cell.typ
 
             self.cell.next_type = None
-            self.cell.blocked = False
+
+            self.cell.typ = self.cell.next_type
+            new_cell.typ = new_cell.next_type
+            new_cell.next_type = None
             self.cell = new_cell
 
             # slow down (random)
             if random.randint(1, 10) <= HUSSAR_SLOW_DOWN_CHANCE:
                 break 
+
     def update(self):
         self.move()
-
-        
 
 def get_distance(x1, y1, x2, y2):
     return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
