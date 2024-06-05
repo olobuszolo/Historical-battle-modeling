@@ -88,7 +88,6 @@ class Warrior:
             self.fight_process(num_of_opp, current_opponents)
 
     def update(self):
-        print(self.health)
         self.fight_with()
         if not self.fight:
             self.move()
@@ -105,6 +104,7 @@ class Artillery:
         self.board = board
         self.last_move = -10
         self.last_shoot = -10
+        self.shooting_range = SHOOT_RANGE
 
 
     def count_team_neighbors(self, target_cell):
@@ -130,16 +130,20 @@ class Artillery:
         for nei in target_cell.fight_neighbors:
             if nei.typ is not None and nei.typ.team is not self.team:
                 return target_cell
+        if target_cell.typ is not None and target_cell.typ.team is not self.team:
+            return target_cell
                 
         return None
 
 
     def full_damage_process(self, target):
-        if target and target.typ:
-            target.is_shooted = True
-            target.typ.health -= random.randint(1, MAX_ARTILLERY_DAMAGE)
-            self.last_shoot = self.game.iteration_num
-        for nei in self.cell.fight_neighbors:
+        target.is_shooted = True
+        if target:
+            if target and target.typ:
+                target.typ.health -= random.randint(1, MAX_ARTILLERY_DAMAGE)
+                self.last_shoot = self.game.iteration_num
+
+        for nei in target.fight_neighbors:
             damage = random.randint(1, MAX_ARTILLERY_DAMAGE) * 0.5
             if nei.typ is not None:
                 nei.typ.health -= damage
@@ -149,7 +153,20 @@ class Artillery:
     def fight_with(self):
         target = self.find_target()
         if target is not None:
-            self.full_damage_process(target)
+            self.last_shoot = self.game.iteration_num
+            probability = random_int(1, 10)
+            if probability <= 1:
+                self.full_damage_process(target)
+            elif probability <= 9:
+                new_x = target.position[0] + random_int(-self.shooting_range, self.shooting_range)
+                new_y = target.position[1] + random_int(-self.shooting_range, self.shooting_range)
+                if new_y >= WIN_DIMS[1] or new_y <= 0 or new_x >= WIN_DIMS[0] or new_x <= 0:
+                    return
+                new_target = self.game.board[new_y][new_x]
+                self.full_damage_process(new_target)
+            else:
+                pass
+
 
     def move(self):
         min_field = SFMAX
@@ -179,12 +196,25 @@ class Artillery:
 
             self.cell.typ = self.cell.next_type
             self.cell.next_type = None     
+    
+
 
     def update(self):
+        if self.game.fog_work:
+            self.shooting_range = SHOOT_RANGE + 2
+        if (not self.game.fog_work and self.shooting_range != SHOOT_RANGE) and (self.game.sun_team != self.team):
+            self.shooting_range = SHOOT_RANGE
+        if self.game.sun_work and self.game.sun_team == self.team:
+            self.shooting_range = SHOOT_RANGE + 2
+
+
         if self.last_shoot + 2 <= self.game.iteration_num:
             self.fight_with()
-        if self.last_move + 6 <= self.game.iteration_num:
+        if self.last_move + 5 <= self.game.iteration_num:
             self.move()
+        
+        # if self.game.sun_work or self.game.fog_work:
+        #     print(str(self.game.iteration_num) + str(self.game.sun_work) + str(self.team) + str(self.game.sun_team) + str(self.game.fog_work) + str(self.shooting_range))
 
 class Hussar:
     def __init__(self, cell, team, teams):
