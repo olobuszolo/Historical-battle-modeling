@@ -95,7 +95,7 @@ class Warrior:
         self.fight = False
     
     def get_stats(self):
-        return f"Team: {self.team}\nType: {self.__class__.__name__}\nID: {self.iden}\nHP: {self.health}\n"
+        return f"Team: {self.team}\nType: {self.__class__.__name__}\nID: {self.iden}\nHP: {self.health if self.health >=0 else 0}\n"
         
 
 class Artillery:
@@ -221,7 +221,7 @@ class Artillery:
         
         
     def get_stats(self):
-        return f"Team: {self.team}\nType: {self.__class__.__name__}\nID: {self.iden}\nHP: {self.health}\n"
+        return f"Team: {self.team}\nType: {self.__class__.__name__}\nID: {self.iden}\nHP: {self.health if self.health >=0 else 0}\n"
         # if self.game.sun_work or self.game.fog_work:
         #     print(str(self.game.iteration_num) + str(self.game.sun_work) + str(self.team) + str(self.game.sun_team) + str(self.game.fog_work) + str(self.shooting_range))
 
@@ -283,7 +283,7 @@ class Hussar:
         self.move()
         
     def get_stats(self):
-        return f"Team: {self.team}\nType: {self.__class__.__name__}\nID: {self.iden}\nHP: {self.health}\n"
+        return f"Team: {self.team}\nType: {self.__class__.__name__}\nID: {self.iden}\nHP: {self.health if self.health >=0 else 0}\n"
         # return self.health
 
 def get_distance(x1, y1, x2, y2):

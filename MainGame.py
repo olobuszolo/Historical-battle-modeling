@@ -266,14 +266,14 @@ class MainGame:
                         self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\germa_warrior.png"),(290,250))
                 if isinstance(self.stats.agent, Artillery):
                     if self.stats.agent.team == TEAM_A: 
-                        self.stats.agent_image = self.artillery_A_image
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\polish_artillery.png"),(290,250))
                     else:
-                        self.stats.agent_image = self.artillery_B_image
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\german_artillery.png"),(290,250))
                 if isinstance(self.stats.agent, Hussar):
                     if self.stats.agent.team == TEAM_A:
-                        self.stats.agent_image = self.warior_A_image
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\polish_warior.jpg"),(290,250))
                     else:
-                        self.stats.agent_image = self.warior_B_image
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\germa_warrior.png"),(290,250))
                 
         ### start ###
 
@@ -318,7 +318,7 @@ class MainGame:
         
         self.window.blit(self.background_image, (0, BARS_SIZE))
         self.window.blit(self.bar_image, (0, WIN_DIMS[1]+BARS_SIZE))
-
+        self.window.blit(pygame.transform.scale(self.bar_image,(WIN_DIMS[0]+STATS_SIZE,BARS_SIZE)), (0, 0))
         for i, row in enumerate(self.board):
             for j, cell in enumerate(row):
                 rect_position = (i * CELL_SIZE, j * CELL_SIZE + BARS_SIZE, CELL_SIZE, CELL_SIZE)
@@ -354,3 +354,14 @@ class MainGame:
         self.stats.draw()
         pygame.display.set_caption(f"Historical battle modeling ({self.iteration_num} iterations)")
         pygame.display.update()
+        
+    def get_unit_stats(self,team):
+        w = a = h = ar = 0
+        for unit in self.teams[team]:
+            if isinstance(unit, Warrior):
+                w += 1
+            if isinstance(unit, Hussar):
+                h += 1
+            if isinstance(unit, Artillery):
+                ar += 1
+        return w, a, h, ar
