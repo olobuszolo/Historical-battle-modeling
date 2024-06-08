@@ -4,11 +4,12 @@ from Buttons import StartButton, ClearButton, ComboBox, Slider
 from CONFIG import *
 import time
 from pathlib import PurePath
+from Stats import Stats
 
 class MainGame:
     def __init__(self):
         pygame.init()
-        self.window = pygame.display.set_mode((WIN_DIMS[0],WIN_DIMS[1]+MENU_SIZE))
+        self.window = pygame.display.set_mode((WIN_DIMS[0]+STATS_SIZE,WIN_DIMS[1]+MENU_SIZE+BARS_SIZE))
         self.bgColor = (255,255,255)
         self.background_image = pygame.image.load(PurePath('./resources/artistic_battlefield_map.png'))
         self.bar_image = pygame.image.load(PurePath('./resources/bar.jpg'))
@@ -33,11 +34,13 @@ class MainGame:
             TEAM_A: [],
             TEAM_B: []
         }
+        self.num_of_A = 0
+        self.num_of_B = 0
         
-        self.start_button = StartButton(self,'Start', 10, 735, True)
+        self.start_button = StartButton(self,'Start', 10, WIN_DIMS[1] + BARS_SIZE + 15, True)
         self.start_iteration = False
-        self.clear_button = ClearButton(self,'Clear', 170, 735, True)
-        self.combo_box = ComboBox(self, 330, 735, [
+        self.clear_button = ClearButton(self,'Clear', 170,  WIN_DIMS[1] + BARS_SIZE + 15, True)
+        self.combo_box = ComboBox(self, 330,  WIN_DIMS[1] + BARS_SIZE + 15, [
             (0, "Warrior Team A"),
             (1, "Warrior Team B"),
             (2, "Hussar Team A"),
@@ -46,7 +49,9 @@ class MainGame:
             (5, "Artillery Team B")
         ], 0)
 
-        self.slider = Slider(self,490,735,150,25,0,100)
+        self.slider = Slider(self,490, WIN_DIMS[1] + BARS_SIZE + 15,150,25,0,100)
+        
+        self.stats = Stats(self)
     
         self.dragging = False
 
@@ -90,7 +95,7 @@ class MainGame:
             if self.start_iteration:
                 iteration_speed = self.slider.get_value()
                 if iteration_curr_speed < iteration_speed:
-                    iteration_curr_speed += 1
+                    iteration_curr_speed += 0.5
                 else:
                     iteration_curr_speed = 0
                     self.iteration()
@@ -202,7 +207,7 @@ class MainGame:
                     self.slider.handle_event(event)
                         
             elif event.type == pygame.MOUSEMOTION:
-                    if self.dragging and event.pos[0]<WIN_DIMS[0] and event.pos[1]<WIN_DIMS[1]:
+                    if self.dragging and event.pos[0]<WIN_DIMS[0] and event.pos[1]<WIN_DIMS[1]+BARS_SIZE:
                         self.handle_click(event.pos)
                     self.slider.handle_event(event)
 
@@ -210,45 +215,77 @@ class MainGame:
 
         ### add agent ###
 
-        if position[0]<WIN_DIMS[0] and position[1]<WIN_DIMS[1] and not self.combo_box.active:
+        if position[0]<WIN_DIMS[0] and BARS_SIZE<position[1]<WIN_DIMS[1]+BARS_SIZE and not self.combo_box.active:
             col = position[0]//CELL_SIZE
-            row = position[1]//CELL_SIZE
+            row = (position[1]-BARS_SIZE)//CELL_SIZE
 
             if self.board[col][row].typ == None:
-                match self.combo_box.selected_index:
+                if not self.start_iteration:
+                    match self.combo_box.selected_index:
 
-                    # warrior
-                    case 0:
-                        self.board[col][row].typ = Warrior(self.board[col][row], TEAM_A)
-                        self.teams[TEAM_A].append(self.board[col][row].typ)
-                    case 1:
-                        self.board[col][row].typ = Warrior(self.board[col][row], TEAM_B)
-                        self.teams[TEAM_B].append(self.board[col][row].typ)
+                        # warrior
+                        case 0:
+                            self.board[col][row].typ = Warrior(self.board[col][row], TEAM_A, self.num_of_A)
+                            self.teams[TEAM_A].append(self.board[col][row].typ)
+                            self.num_of_A+=1
+                            self.stats.max_healthA += WARRIOR_HEALTH
+                        case 1:
+                            self.board[col][row].typ = Warrior(self.board[col][row], TEAM_B, self.num_of_B)
+                            self.teams[TEAM_B].append(self.board[col][row].typ)
+                            self.num_of_B+=1
+                            self.stats.max_healthB += WARRIOR_HEALTH
+                        # hussar
+                        case 2:
+                            self.board[col][row].typ = Hussar(self.board[col][row], TEAM_A, self.teams, self.num_of_A)
+                            self.teams[TEAM_A].append(self.board[col][row].typ)
+                            self.num_of_A+=1
+                            self.stats.max_healthA += HUSSAR_HEALTH
+                        case 3:
+                            self.board[col][row].typ = Hussar(self.board[col][row], TEAM_B, self.teams, self.num_of_B)
+                            self.teams[TEAM_B].append(self.board[col][row].typ)
+                            self.num_of_B+=1
+                            self.stats.max_healthB += HUSSAR_HEALTH
 
-                    # hussar
-                    case 2:
-                        self.board[col][row].typ = Hussar(self.board[col][row], TEAM_A, self.teams)
-                        self.teams[TEAM_A].append(self.board[col][row].typ)
-                    case 3:
-                        self.board[col][row].typ = Hussar(self.board[col][row], TEAM_B, self.teams)
-                        self.teams[TEAM_B].append(self.board[col][row].typ)
-
-                    # artillery
-                    case 4:
-                        self.board[col][row].typ = Artillery(self.board[col][row], TEAM_A, self.board, self)
-                        self.teams[TEAM_A].append(self.board[col][row].typ)
-                    case 5:
-                        self.board[col][row].typ = Artillery(self.board[col][row], TEAM_B, self.board, self)
-                        self.teams[TEAM_B].append(self.board[col][row].typ)
-                    
-        
+                        # artillery
+                        case 4:
+                            self.board[col][row].typ = Artillery(self.board[col][row], TEAM_A, self.board, self, self.num_of_A)
+                            self.teams[TEAM_A].append(self.board[col][row].typ)
+                            self.num_of_A+=1
+                            self.stats.max_healthA += ARTILLERY_HEALTH
+                        case 5:
+                            self.board[col][row].typ = Artillery(self.board[col][row], TEAM_B, self.board, self, self.num_of_B)
+                            self.teams[TEAM_B].append(self.board[col][row].typ)
+                            self.num_of_B+=1
+                            self.stats.max_healthB += ARTILLERY_HEALTH
+            else:
+                self.stats.agent = self.board[col][row].typ
+                if isinstance(self.stats.agent, Warrior):
+                    if self.stats.agent.team == TEAM_A:
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\polish_warior.jpg"),(290,250))
+                    else:
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\germa_warrior.png"),(290,250))
+                if isinstance(self.stats.agent, Artillery):
+                    if self.stats.agent.team == TEAM_A: 
+                        self.stats.agent_image = self.artillery_A_image
+                    else:
+                        self.stats.agent_image = self.artillery_B_image
+                if isinstance(self.stats.agent, Hussar):
+                    if self.stats.agent.team == TEAM_A:
+                        self.stats.agent_image = self.warior_A_image
+                    else:
+                        self.stats.agent_image = self.warior_B_image
+                
         ### start ###
 
         if self.start_button.rect.collidepoint(position):
             if self.start_button.text == 'Start':
                 self.start_iteration = True
+                self.stats.max_healthA_stop = self.stats.max_healthA
+                self.stats.max_healthB_stop = self.stats.max_healthB
             else:
                 self.start_iteration = False
+                self.stats.healthA_stop = sum(warrior.health for warrior in self.teams[TEAM_A])
+                self.stats.healthB_stop = sum(warrior.health for warrior in self.teams[TEAM_B])
             self.start_button.get_clicked()
         
         ### clear ###
@@ -262,6 +299,13 @@ class MainGame:
                     x.blocked = False
             self.teams[TEAM_A] = []
             self.teams[TEAM_B] = []
+            self.num_of_B = 0
+            self.num_of_A = 0
+            self.stats.max_healthA = 0
+            self.stats.max_healthB = 0
+            self.stats.healthA_stop = 0
+            self.stats.healthB_stop = 0
+            self.stats.agent = None
         
         if self.combo_box.rect.collidepoint(position):
             self.combo_box.handle_event(position,True)
@@ -271,29 +315,32 @@ class MainGame:
 
     def render(self):
         self.window.fill(self.bgColor)
-        self.window.blit(self.background_image, (0, 0))
-        self.window.blit(self.bar_image, (0, 720))
+        
+        self.window.blit(self.background_image, (0, BARS_SIZE))
+        self.window.blit(self.bar_image, (0, WIN_DIMS[1]+BARS_SIZE))
 
         for i, row in enumerate(self.board):
             for j, cell in enumerate(row):
-                rect_position = (i * CELL_SIZE, j * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                rect_position = (i * CELL_SIZE, j * CELL_SIZE + BARS_SIZE, CELL_SIZE, CELL_SIZE)
                 if cell.typ is not None:
 
                     if isinstance(cell.typ, Warrior):
                         if cell.typ.team == TEAM_A:
-                            self.window.blit(self.warior_A_image, (i * CELL_SIZE, j * CELL_SIZE))
+                            self.window.blit(self.warior_A_image, rect_position)
                         else:
-                            self.window.blit(self.warior_B_image, (i * CELL_SIZE, j * CELL_SIZE))
+                            self.window.blit(self.warior_B_image, rect_position)
                     if isinstance(cell.typ, Artillery):
                         if cell.typ.team == TEAM_A: 
-                            self.window.blit(self.artillery_A_image, (i * CELL_SIZE, j * CELL_SIZE))
+                            self.window.blit(self.artillery_A_image, rect_position)
                         else:
-                            self.window.blit(self.artillery_B_image, (i * CELL_SIZE, j * CELL_SIZE))
+                            self.window.blit(self.artillery_B_image, rect_position)
                     if isinstance(cell.typ, Hussar):
                         if cell.typ.team == TEAM_A:
                             pygame.draw.rect(self.window, HUSSAR_COLOR_A, rect_position)
                         else:
-                            pygame.draw.rect(self.window, HUSSAR_COLOR_B, rect_position)        
+                            pygame.draw.rect(self.window, HUSSAR_COLOR_B, rect_position)
+                    if self.stats.agent == cell.typ:
+                        pygame.draw.rect(self.window, 'cyan', rect_position, 2)
                     
                 if cell.is_shooted:
                     self.window.blit(self.explosion_image, rect_position)
@@ -304,5 +351,6 @@ class MainGame:
         self.clear_button.draw()
         self.combo_box.draw()
         self.slider.draw()
+        self.stats.draw()
         pygame.display.set_caption(f"Historical battle modeling ({self.iteration_num} iterations)")
         pygame.display.update()
