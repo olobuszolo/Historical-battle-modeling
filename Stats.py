@@ -14,18 +14,60 @@ class Stats:
         self.agent = None
         self.agent_image = None
         
+        self.stats_image = pygame.transform.scale(pygame.image.load("resources\\steel.jpg"), (STATS_SIZE, WIN_DIMS[1]))
+
+        
     def draw(self):
 
         font = pygame.font.Font(None, 24)
         title_font = pygame.font.Font(None, 30)
-        rect = pygame.Rect(WIN_DIMS[0], 0, STATS_SIZE, WIN_DIMS[1])
-        pygame.draw.rect(self.game.window, 'white', rect)
+        # rect = pygame.Rect(WIN_DIMS[0], BARS_SIZE, STATS_SIZE, WIN_DIMS[1])
+        self.game.window.blit(self.stats_image, (WIN_DIMS[0], BARS_SIZE))
+        # pygame.draw.rect(self.game.window, 'white', rect)
+        
+        y_offset = BARS_SIZE + 10
+        text = title_font.render("Teams statistics:", True, (0,0,0))
+        self.game.window.blit(text, (WIN_DIMS[0] + 60, y_offset))
+        y_offset += 30
+        text = title_font.render(TEAM_A, True, (0,0,0))
+        self.game.window.blit(text, (WIN_DIMS[0] + 50, y_offset))
+        text = title_font.render(TEAM_B, True, (0,0,0))
+        self.game.window.blit(text, (WIN_DIMS[0] + 150, y_offset))
+        y_offset += 20
+        
+        teamA_units = self.game.get_unit_stats(TEAM_A)
+        teamB_units = self.game.get_unit_stats(TEAM_B)
+        
+        text = font.render("Kills: " + str(self.game.num_of_B-len(self.game.teams[TEAM_B])), True, (0,0,0))
+        self.game.window.blit(text, (WIN_DIMS[0] + 50, y_offset))
+        text = font.render("Kills: " + str(self.game.num_of_A-len(self.game.teams[TEAM_A])), True, (0,0,0))
+        self.game.window.blit(text, (WIN_DIMS[0] + 150, y_offset))
+        y_offset += 20
+        text = font.render("Warriors: " + str(teamA_units[0]), True, (0,0,0))
+        self.game.window.blit(text, (WIN_DIMS[0] + 50, y_offset))
+        text = font.render("Warriors: " + str(teamB_units[0]), True, (0,0,0))
+        self.game.window.blit(text, (WIN_DIMS[0] + 150, y_offset))
+        y_offset += 20
+        text = font.render("Archers: " + str(teamA_units[1]), True, (0,0,0))
+        self.game.window.blit(text, (WIN_DIMS[0] + 50, y_offset))
+        text = font.render("Archers: " + str(teamB_units[1]), True, (0,0,0))
+        self.game.window.blit(text, (WIN_DIMS[0] + 150, y_offset))
+        y_offset += 20
+        text = font.render("Hussar: " + str(teamA_units[2]), True, (0,0,0))
+        self.game.window.blit(text, (WIN_DIMS[0] + 50, y_offset))
+        text = font.render("Hussar: " + str(teamB_units[2]), True, (0,0,0))
+        self.game.window.blit(text, (WIN_DIMS[0] + 150, y_offset))
+        y_offset += 20
+        text = font.render("Artillery: " + str(teamA_units[3]), True, (0,0,0))
+        self.game.window.blit(text, (WIN_DIMS[0] + 50, y_offset))
+        text = font.render("Artillery: " + str(teamB_units[3]), True, (0,0,0))
+        self.game.window.blit(text, (WIN_DIMS[0] + 150, y_offset))
+        y_offset += 50
         if self.agent!=None:
             stats = self.agent.get_stats().split('\n')
             text = title_font.render("Tracked unit:", True, (0,0,0))
-            y_offset = 80
             self.game.window.blit(text, (WIN_DIMS[0] + 50, y_offset))
-            y_offset += 40
+            y_offset += 30
             for stat in stats:
                 text = font.render(stat, True, (0,0,0))
                 self.game.window.blit(text, (WIN_DIMS[0] + 50, y_offset))
@@ -55,8 +97,8 @@ class Stats:
             if self.max_healthA and not flag:
                 max_health = self.max_healthA
                 bar_width = int((total_health / max_health) * HEALTH_BAR_WIDTH)
-                pygame.draw.rect(self.game.window, 'green', (15 + 70, BARS_SIZE//2, bar_width, HEALTH_BAR_HEIGHT))
-                pygame.draw.rect(self.game.window, 'black', (15 + 70, BARS_SIZE//2, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT), 3)
+                pygame.draw.rect(self.game.window, 'green', (15 + 70, BARS_SIZE//2, bar_width, HEALTH_BAR_HEIGHT), 0, 5)
+                pygame.draw.rect(self.game.window, 'black', (15 + 70, BARS_SIZE//2, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT), 3, 5)
                 health_text = font.render(str(total_health), True, (0,0,0))
                 self.game.window.blit(health_text, (10, BARS_SIZE//2))
             if flag:
@@ -66,8 +108,8 @@ class Stats:
             if self.max_healthB and not flag:
                 max_health = self.max_healthB
                 bar_width = int((total_health / max_health) * HEALTH_BAR_WIDTH)
-                pygame.draw.rect(self.game.window, 'red', (HEALTH_BAR_WIDTH + 85, BARS_SIZE//2, bar_width, HEALTH_BAR_HEIGHT))
-                pygame.draw.rect(self.game.window, 'black', (HEALTH_BAR_WIDTH + 85, BARS_SIZE//2, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT), 3)
+                pygame.draw.rect(self.game.window, 'red', (HEALTH_BAR_WIDTH + 85, BARS_SIZE//2, bar_width, HEALTH_BAR_HEIGHT), 0, 5)
+                pygame.draw.rect(self.game.window, 'black', (HEALTH_BAR_WIDTH + 85, BARS_SIZE//2, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT), 3, 5)
                 health_text = font.render(str(total_health), True, (0,0,0))
                 self.game.window.blit(health_text, (90 + 2*HEALTH_BAR_WIDTH, BARS_SIZE//2))
             if flag:
