@@ -107,6 +107,11 @@ class Stats:
                 health_text = font.render(str(total_health), True, (0,0,0))
                 self.game.window.blit(health_text, (10, BARS_SIZE//2))
             if flag:
+                if self.max_healthA > 0:
+                    max_health = self.max_healthA
+                    bar_width = int((total_health / max_health) * HEALTH_BAR_WIDTH)
+                    pygame.draw.rect(self.game.window, 'green', (15 + 70, BARS_SIZE//2, bar_width, HEALTH_BAR_HEIGHT), 0, 5)
+                    pygame.draw.rect(self.game.window, 'black', (15 + 70, BARS_SIZE//2, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT), 3, 5)
                 health_text = font.render(str(self.healthA_stop), True, (0,0,0))
                 self.game.window.blit(health_text, (10, BARS_SIZE//2))
         if team_name == TEAM_B:
@@ -118,5 +123,10 @@ class Stats:
                 health_text = font.render(str(total_health), True, (0,0,0))
                 self.game.window.blit(health_text, (90 + 2*HEALTH_BAR_WIDTH, BARS_SIZE//2))
             if flag:
+                if self.max_healthB > 0:
+                    max_health = self.max_healthB
+                    bar_width = int((total_health / max_health) * HEALTH_BAR_WIDTH)
+                    pygame.draw.rect(self.game.window, 'red', (HEALTH_BAR_WIDTH + 85, BARS_SIZE//2, bar_width, HEALTH_BAR_HEIGHT), 0, 5)
+                    pygame.draw.rect(self.game.window, 'black', (HEALTH_BAR_WIDTH + 85, BARS_SIZE//2, HEALTH_BAR_WIDTH, HEALTH_BAR_HEIGHT), 3, 5)
                 health_text = font.render(str(self.healthB_stop), True, (0,0,0))
                 self.game.window.blit(health_text, (90 + 2*HEALTH_BAR_WIDTH, BARS_SIZE//2))
