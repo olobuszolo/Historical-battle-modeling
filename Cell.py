@@ -29,11 +29,12 @@ class Cell:
         return False
     
 class Warrior:
-    def __init__(self,cell, team):
+    def __init__(self, cell, team, iden):
         self.cell = cell
         self.team = team 
         self.health = WARRIOR_HEALTH
         self.fight = False
+        self.iden = iden
     
     def calc_static_field(self):
         return self.cell.calc_static_field()
@@ -92,9 +93,13 @@ class Warrior:
         if not self.fight:
             self.move()
         self.fight = False
+    
+    def get_stats(self):
+        return f"Team: {self.team}\nType: {self.__class__.__name__}\nID: {self.iden}\nHP: {self.health if self.health >=0 else 0}\n"
+        
 
 class Artillery:
-    def __init__(self, cell, team, board, game):
+    def __init__(self, cell, team, board, game, iden):
         self.cell = cell
         self.team = team 
         self.health = ARTILLERY_HEALTH
@@ -105,6 +110,7 @@ class Artillery:
         self.last_move = -10
         self.last_shoot = -10
         self.shooting_range = SHOOT_RANGE
+        self.iden = iden
 
 
     def count_team_neighbors(self, target_cell):
@@ -213,17 +219,21 @@ class Artillery:
         if self.last_move + 5 <= self.game.iteration_num:
             self.move()
         
+        
+    def get_stats(self):
+        return f"Team: {self.team}\nType: {self.__class__.__name__}\nID: {self.iden}\nHP: {self.health if self.health >=0 else 0}\n"
         # if self.game.sun_work or self.game.fog_work:
         #     print(str(self.game.iteration_num) + str(self.game.sun_work) + str(self.team) + str(self.game.sun_team) + str(self.game.fog_work) + str(self.shooting_range))
 
 class Hussar:
-    def __init__(self, cell, team, teams):
+    def __init__(self, cell, team, teams, iden):
         self.cell = cell
         self.team = team
         self.enemy_team = TEAM_B if team == TEAM_A else TEAM_A
         self.teams = teams
         self.health = HUSSAR_HEALTH
         self.fight = False
+        self.iden = iden
 
     def find_target(self):
         closest_target = None
@@ -271,6 +281,10 @@ class Hussar:
 
     def update(self):
         self.move()
+        
+    def get_stats(self):
+        return f"Team: {self.team}\nType: {self.__class__.__name__}\nID: {self.iden}\nHP: {self.health if self.health >=0 else 0}\n"
+        # return self.health
 
 def get_distance(x1, y1, x2, y2):
     return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
