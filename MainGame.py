@@ -1,6 +1,6 @@
 import pygame
 from Cell import *
-from Buttons import StartButton, ClearButton, ComboBox, Slider
+from Buttons import *
 from CONFIG import *
 import time
 from pathlib import PurePath
@@ -29,6 +29,7 @@ class MainGame:
         self.fog_work = False
         self.sun_work = False
         self.sun_team = None
+        
         # teams
         self.teams = {
             TEAM_A: [],
@@ -46,10 +47,13 @@ class MainGame:
             (2, "Hussar Team A"),
             (3, "Hussar Team B"),
             (4, "Artillery Team A"),
-            (5, "Artillery Team B")
+            (5, "Artillery Team B"),
+            (6, "Archer Team A"),
+            (7, "Archer Team B"),
         ], 0)
 
         self.slider = Slider(self,490, WIN_DIMS[1] + BARS_SIZE + 15,150,25,0,100)
+        self.fog_button = FogButton(self, 'Fog ON', 650,  WIN_DIMS[1] + BARS_SIZE + 15, True)
         
         self.stats = Stats(self)
     
@@ -59,7 +63,10 @@ class MainGame:
         self.warior_B_image = pygame.transform.scale(pygame.image.load("resources\\germa_warrior.png"), (CELL_SIZE, CELL_SIZE))
         self.artillery_A_image = pygame.transform.scale(pygame.image.load("resources\\polish_artillery.png"), (CELL_SIZE, CELL_SIZE))
         self.artillery_B_image = pygame.transform.scale(pygame.image.load("resources\\german_artillery.png"), (CELL_SIZE, CELL_SIZE))
+        self.archer_A_image = pygame.transform.scale(pygame.image.load("resources\\polish_archer.jpg"), (CELL_SIZE, CELL_SIZE))
+        self.archer_B_image = pygame.transform.scale(pygame.image.load("resources\\german_Archer.jpg"), (CELL_SIZE, CELL_SIZE))
         self.explosion_image = pygame.transform.scale(pygame.image.load("resources\\explosion.png"), (CELL_SIZE, CELL_SIZE))
+        self.arrow_image = pygame.transform.scale(pygame.image.load("resources\\arrow.jpg"), (CELL_SIZE-4, CELL_SIZE-4))
 
 
     #MOORE
@@ -130,10 +137,10 @@ class MainGame:
             for cell in row:
                 cell.is_shooted = False
     
-    def fog(self):
-        if random_int(1, 10) <= 3:
-            self.fog_work = True
-            self.last_fog = self.iteration_num
+    # def fog(self):
+    #     if random_int(1, 10) <= 3:
+    #         self.fog_work = True
+    #         self.last_fog = self.iteration_num
 
     def sun(self):
         if random_int(1, 10) <= 3:
@@ -146,15 +153,11 @@ class MainGame:
         self.clean_is_shooted()
         self.field_clean()
 
-        if self.last_sun == self.iteration_num - 3:
+        if self.last_sun == self.iteration_num - 3 or self.fog_work:
             self.sun_work = False
             self.sun_team = None
-        if self.last_fog == self.iteration_num - 5:
-            self.fog_work = False     
 
-        if self.last_fog + 15 <= self.iteration_num and not self.sun_work:
-            self.fog()
-        elif self.last_sun + 13 <= self.iteration_num and not self.fog_work:
+        if self.last_sun + 13 <= self.iteration_num and not self.fog_work:
             self.sun()
 
         for i in self.board:
@@ -257,6 +260,18 @@ class MainGame:
                             self.teams[TEAM_B].append(self.board[col][row].typ)
                             self.num_of_B+=1
                             self.stats.max_healthB += ARTILLERY_HEALTH
+                        
+                        #archer
+                        case 6:
+                            self.board[col][row].typ = Archer(self.board[col][row], TEAM_A, self.board, self, self.num_of_A)
+                            self.teams[TEAM_A].append(self.board[col][row].typ)
+                            self.num_of_A+=1
+                            self.stats.max_healthA += ARCHER_HEALTH
+                        case 7:
+                            self.board[col][row].typ = Archer(self.board[col][row], TEAM_B, self.board, self, self.num_of_B)
+                            self.teams[TEAM_B].append(self.board[col][row].typ)
+                            self.num_of_B+=1
+                            self.stats.max_healthB += ARCHER_HEALTH
             else:
                 self.stats.agent = self.board[col][row].typ
                 if isinstance(self.stats.agent, Warrior):
@@ -274,6 +289,11 @@ class MainGame:
                         self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\polish_warior.jpg"),(290,250))
                     else:
                         self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\germa_warrior.png"),(290,250))
+                if isinstance(self.stats.agent, Archer):
+                    if self.stats.agent.team == TEAM_A:
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\polish_archer.jpg"),(290,250))
+                    else:
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\german_archer.jpg"),(290,250))
                 
         ### start ###
 
@@ -306,6 +326,11 @@ class MainGame:
             self.stats.healthA_stop = 0
             self.stats.healthB_stop = 0
             self.stats.agent = None
+            self.clean_is_shooted = False
+            self.clean_is_shooted_by_archer = False
+            
+        if self.fog_button.rect.collidepoint(position):
+            self.fog_button.get_clicked()
         
         if self.combo_box.rect.collidepoint(position):
             self.combo_box.handle_event(position,True)
@@ -315,7 +340,6 @@ class MainGame:
 
     def render(self):
         self.window.fill(self.bgColor)
-        
         self.window.blit(self.background_image, (0, BARS_SIZE))
         self.window.blit(self.bar_image, (0, WIN_DIMS[1]+BARS_SIZE))
         self.window.blit(pygame.transform.scale(self.bar_image,(WIN_DIMS[0]+STATS_SIZE,BARS_SIZE)), (0, 0))
@@ -339,11 +363,19 @@ class MainGame:
                             pygame.draw.rect(self.window, HUSSAR_COLOR_A, rect_position)
                         else:
                             pygame.draw.rect(self.window, HUSSAR_COLOR_B, rect_position)
+                    if isinstance(cell.typ, Archer):
+                        if cell.typ.team == TEAM_A:
+                            self.window.blit(self.archer_A_image, rect_position)
+                        else:
+                            self.window.blit(self.archer_B_image, rect_position)        
                     if self.stats.agent == cell.typ:
                         pygame.draw.rect(self.window, 'cyan', rect_position, 2)
                     
                 if cell.is_shooted:
-                    self.window.blit(self.explosion_image, rect_position)
+                    if not cell.is_shooted_by_archer:
+                        self.window.blit(self.explosion_image, rect_position)
+                    else:
+                        self.window.blit(self.arrow_image, rect_position)
                             
                     
                     
@@ -351,6 +383,7 @@ class MainGame:
         self.clear_button.draw()
         self.combo_box.draw()
         self.slider.draw()
+        self.fog_button.draw()
         self.stats.draw()
         pygame.display.set_caption(f"Historical battle modeling ({self.iteration_num} iterations)")
         pygame.display.update()

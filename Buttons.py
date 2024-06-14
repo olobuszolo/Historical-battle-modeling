@@ -29,6 +29,15 @@ class StartButton(Button):
 class ClearButton(Button):
     def get_clicked(self):
         return super().get_clicked()
+    
+class FogButton(Button):
+    def get_clicked(self):
+        if self.text == 'Fog ON':
+            self.game.fog_work = True
+            self.text = 'Fog OFF'
+        else:
+            self.game.fog_work = False
+            self.text = 'Fog ON'
 
 class ComboBox:
     def __init__(self, game, x, y, options, selected_index=0):
