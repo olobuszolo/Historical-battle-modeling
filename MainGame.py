@@ -59,14 +59,14 @@ class MainGame:
     
         self.dragging = False
 
-        self.warior_A_image = pygame.transform.scale(pygame.image.load("resources\\polish_warior.jpg"), (CELL_SIZE, CELL_SIZE))
-        self.warior_B_image = pygame.transform.scale(pygame.image.load("resources\\germa_warrior.png"), (CELL_SIZE, CELL_SIZE))
-        self.artillery_A_image = pygame.transform.scale(pygame.image.load("resources\\polish_artillery.png"), (CELL_SIZE, CELL_SIZE))
-        self.artillery_B_image = pygame.transform.scale(pygame.image.load("resources\\german_artillery.png"), (CELL_SIZE, CELL_SIZE))
-        self.archer_A_image = pygame.transform.scale(pygame.image.load("resources\\polish_archer.jpg"), (CELL_SIZE, CELL_SIZE))
-        self.archer_B_image = pygame.transform.scale(pygame.image.load("resources\\german_Archer.jpg"), (CELL_SIZE, CELL_SIZE))
-        self.explosion_image = pygame.transform.scale(pygame.image.load("resources\\explosion.png"), (CELL_SIZE, CELL_SIZE))
-        self.arrow_image = pygame.transform.scale(pygame.image.load("resources\\arrow.jpg"), (CELL_SIZE-4, CELL_SIZE-4))
+        self.warrior_A_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/polish_warrior.jpg")), (CELL_SIZE, CELL_SIZE))
+        self.warrior_B_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/germa_warrior.png")), (CELL_SIZE, CELL_SIZE))
+        self.artillery_A_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/polish_artillery.png")), (CELL_SIZE, CELL_SIZE))
+        self.artillery_B_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/german_artillery.png")), (CELL_SIZE, CELL_SIZE))
+        self.archer_A_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/polish_archer.jpg")), (CELL_SIZE, CELL_SIZE))
+        self.archer_B_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/german_archer.jpg")), (CELL_SIZE, CELL_SIZE))
+        self.explosion_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/explosion.png")), (CELL_SIZE, CELL_SIZE))
+        self.arrow_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/arrow.jpg")), (CELL_SIZE-4, CELL_SIZE-4))
 
 
     #MOORE
@@ -276,24 +276,24 @@ class MainGame:
                 self.stats.agent = self.board[col][row].typ
                 if isinstance(self.stats.agent, Warrior):
                     if self.stats.agent.team == TEAM_A:
-                        self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\polish_warior.jpg"),(290,250))
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/polish_warrior.jpg")),(290,250))
                     else:
-                        self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\germa_warrior.png"),(290,250))
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/germa_warrior.png")),(290,250))
                 if isinstance(self.stats.agent, Artillery):
                     if self.stats.agent.team == TEAM_A: 
-                        self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\polish_artillery.png"),(290,250))
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/polish_artillery.png")),(290,250))
                     else:
-                        self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\german_artillery.png"),(290,250))
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/german_artillery.png")),(290,250))
                 if isinstance(self.stats.agent, Hussar):
                     if self.stats.agent.team == TEAM_A:
-                        self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\polish_warior.jpg"),(290,250))
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/polish_warrior.jpg")),(290,250))
                     else:
-                        self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\germa_warrior.png"),(290,250))
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/germa_warrior.png")),(290,250))
                 if isinstance(self.stats.agent, Archer):
                     if self.stats.agent.team == TEAM_A:
-                        self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\polish_archer.jpg"),(290,250))
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/polish_archer.jpg")),(290,250))
                     else:
-                        self.stats.agent_image = pygame.transform.scale(pygame.image.load("resources\\german_archer.jpg"),(290,250))
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/german_archer.jpg")),(290,250))
                 
         ### start ###
 
@@ -350,9 +350,9 @@ class MainGame:
 
                     if isinstance(cell.typ, Warrior):
                         if cell.typ.team == TEAM_A:
-                            self.window.blit(self.warior_A_image, rect_position)
+                            self.window.blit(self.warrior_A_image, rect_position)
                         else:
-                            self.window.blit(self.warior_B_image, rect_position)
+                            self.window.blit(self.warrior_B_image, rect_position)
                     if isinstance(cell.typ, Artillery):
                         if cell.typ.team == TEAM_A: 
                             self.window.blit(self.artillery_A_image, rect_position)

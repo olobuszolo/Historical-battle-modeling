@@ -1,5 +1,6 @@
 import pygame
 from CONFIG import *
+from pathlib import PurePath
 
 
 class Stats:
@@ -14,7 +15,7 @@ class Stats:
         self.agent = None
         self.agent_image = None
         
-        self.stats_image = pygame.transform.scale(pygame.image.load("resources\\steel.jpg"), (STATS_SIZE, WIN_DIMS[1]))
+        self.stats_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/steel.jpg")), (STATS_SIZE, WIN_DIMS[1]))
 
         
     def draw(self):

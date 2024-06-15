@@ -69,7 +69,7 @@ class Warrior:
 
     def fight_process(self, n, opp):
         fight_with_oppenent = random_int(0, n - 1)
-        opp[fight_with_oppenent].typ.health -= random_int(1, MAX_DAMAGE_WARIOR)
+        opp[fight_with_oppenent].typ.health -= random_int(1, MAX_DAMAGE_WARRIOR)
 
     def fight_with(self):
         current_opponents = []
