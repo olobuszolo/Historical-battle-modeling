@@ -400,6 +400,8 @@ class MainGame:
                 w += 1
             if isinstance(unit, Hussar):
                 h += 1
+            if isinstance(unit, Archer):
+                a += 1
             if isinstance(unit, Artillery):
                 ar += 1
         return w, a, h, ar
