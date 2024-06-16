@@ -132,7 +132,7 @@ class MainGame:
             for cell in row:
                 cell.staticField = SFMAX
 
-    def clean_is_shooted(self):
+    def clean_is_shooted_f(self):
         for row in self.board:
             for cell in row:
                 cell.is_shooted = False
@@ -150,7 +150,7 @@ class MainGame:
             # print(self.sun_team)
     
     def iteration(self):
-        self.clean_is_shooted()
+        self.clean_is_shooted_f()
         self.field_clean()
 
         if self.last_sun == self.iteration_num - 3 or self.fog_work:
@@ -163,6 +163,7 @@ class MainGame:
         for i in self.board:
             for j in i:
                 j.blocked = False
+                j.n_targetted = 0
 
         self.iteration_A()
         self.field_clean()
@@ -317,6 +318,8 @@ class MainGame:
                     x.typ = None
                     x.next_type = None
                     x.blocked = False
+                    x.is_shooted = False
+                    x.is_shooted_by_archer = False
             self.teams[TEAM_A] = []
             self.teams[TEAM_B] = []
             self.num_of_B = 0
@@ -326,8 +329,6 @@ class MainGame:
             self.stats.healthA_stop = 0
             self.stats.healthB_stop = 0
             self.stats.agent = None
-            self.clean_is_shooted = False
-            self.clean_is_shooted_by_archer = False
             
         if self.fog_button.rect.collidepoint(position):
             self.fog_button.get_clicked()
