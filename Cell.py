@@ -238,7 +238,7 @@ class Hussar:
         self.health = HUSSAR_HEALTH
         self.closest_target = None
         self.closest_distance = float('inf')
-        self.doing_loop = False
+        self.loop_counter = False
         self.target_hit = None
         self.iden = iden
 
@@ -248,12 +248,15 @@ class Hussar:
         closest_distance = float('inf')
 
         for enemy in self.teams[self.enemy_team]:
+            if enemy is self.target_hit:
+                continue
+
             distance = self.get_distance(self.cell.x, self.cell.y, enemy.cell.x, enemy.cell.y)
 
             if closest_target is None:
                 closest_target = enemy
 
-            if distance + 4 * enemy.cell.n_targetted < closest_distance + 4 * closest_target.cell.n_targetted:
+            if distance + HUSSAR_N_TARG_MULTIP * enemy.cell.n_targetted < closest_distance + HUSSAR_N_TARG_MULTIP * closest_target.cell.n_targetted:
                 closest_distance = distance
                 closest_target = enemy
 
@@ -267,7 +270,9 @@ class Hussar:
     def hit_target(self):
         if self.closest_target is None:
             return
-        self.closest_target.health -= random_int(1, HUSSAR_MAX_DAMAGE)
+        self.closest_target.health -= random_int(HUSSAR_MIN_DAMAGE, HUSSAR_MAX_DAMAGE)
+        self.loop_counter = random_int(1, HUSSAR_MAX_LOOP_COUNTER)
+        self.target_hit = self.closest_target
 
 
     def move(self):
@@ -278,7 +283,13 @@ class Hussar:
             return
 
         for _ in range(HUSSAR_SPEED):
-            new_cell = self.get_next_cell(self.closest_target.cell)
+            if self.loop_counter > 0 and self.target_hit is not None:
+                new_cell = self.get_next_cell_loop(self.target_hit.cell)
+                self.loop_counter -= 1
+                if self.loop_counter == 0:
+                    self.target_hit = None
+            else:
+                new_cell = self.get_next_cell(self.closest_target.cell)
   
             new_cell.blocked = True
             new_cell.next_type = self.cell.typ
@@ -310,6 +321,19 @@ class Hussar:
                 closest_nei = nei
         
         return closest_nei
+    
+
+    def get_next_cell_loop(self, cell2):
+        furthest_distance = 0
+        furthest_nei = self.cell
+
+        for nei in self.cell.neighbors:
+            distance = self.get_distance(nei.x, nei.y, cell2.x, cell2.y)
+            if distance > furthest_distance and not nei.blocked and nei.typ is None:
+                furthest_distance = distance
+                furthest_nei = nei
+        
+        return furthest_nei
 
 
     def update(self):
