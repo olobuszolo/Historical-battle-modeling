@@ -70,7 +70,7 @@ class Warrior:
 
     def fight_process(self, n, opp):
         fight_with_oppenent = random_int(0, n - 1)
-        opp[fight_with_oppenent].typ.health -= random_int(1, MAX_DAMAGE_WARRIOR)
+        opp[fight_with_oppenent].typ.health -= random_int(MAX_DAMAGE_WARRIOR // 2, MAX_DAMAGE_WARRIOR)
 
     def fight_with(self):
         current_opponents = []
@@ -149,11 +149,11 @@ class Artillery:
         target.is_shooted = True
         if target:
             if target and target.typ:
-                target.typ.health -= random.randint(1, MAX_ARTILLERY_DAMAGE)
+                target.typ.health -= random.randint(MAX_ARTILLERY_DAMAGE // 2, MAX_ARTILLERY_DAMAGE)
                 self.last_shoot = self.game.iteration_num
 
         for nei in target.fight_neighbors:
-            damage = random.randint(1, MAX_ARTILLERY_DAMAGE) * 0.5
+            damage = random.randint(MAX_ARTILLERY_DAMAGE // 2, MAX_ARTILLERY_DAMAGE) * 0.5
             if nei.typ is not None:
                 nei.typ.health -= damage
                 self.last_shoot = self.game.iteration_num
@@ -270,7 +270,7 @@ class Hussar:
     def hit_target(self):
         if self.closest_target is None:
             return
-        self.closest_target.health -= random_int(HUSSAR_MIN_DAMAGE, HUSSAR_MAX_DAMAGE)
+        self.closest_target.health -= random_int(HUSSAR_MAX_DAMAGE // 2, HUSSAR_MAX_DAMAGE)
         self.loop_counter = random_int(1, HUSSAR_MAX_LOOP_COUNTER)
         self.target_hit = self.closest_target
 
@@ -398,10 +398,10 @@ class Archer:
         if target:
             if target and target.typ:
                 if t == 'a':
-                    target.typ.health -= random.randint(1, MAX_ARCHER_SHOT_DAMAGE)
+                    target.typ.health -= random.randint(MAX_ARCHER_SHOT_DAMAGE // 2, MAX_ARCHER_SHOT_DAMAGE)
                     self.last_shoot = self.game.iteration_num
                 else:
-                    target.typ.health -= random.randint(1, MAX_ARCHER_DAMAGE)
+                    target.typ.health -= random.randint(MAX_ARCHER_DAMAGE // 2, MAX_ARCHER_DAMAGE)
 
     def fight_with(self):
         target = self.find_target()
