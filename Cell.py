@@ -337,6 +337,8 @@ class Hussar:
 
 
     def update(self):
+        if self.health <= 0:
+            return
         self.find_target()
         if self.closest_distance < 2:
             self.hit_target()
