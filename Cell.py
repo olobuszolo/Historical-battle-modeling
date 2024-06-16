@@ -29,7 +29,8 @@ class Cell:
             return True
         
         return False
-    
+
+
 class Warrior:
     def __init__(self, cell, team, iden):
         self.cell = cell
@@ -227,6 +228,7 @@ class Artillery:
         # if self.game.sun_work or self.game.fog_work:
         #     print(str(self.game.iteration_num) + str(self.game.sun_work) + str(self.team) + str(self.game.sun_team) + str(self.game.fog_work) + str(self.shooting_range))
 
+
 class Hussar:
     def __init__(self, cell, team, teams, iden):
         self.cell = cell
@@ -234,38 +236,60 @@ class Hussar:
         self.enemy_team = TEAM_B if team == TEAM_A else TEAM_A
         self.teams = teams
         self.health = HUSSAR_HEALTH
-        self.fight = False
+        self.closest_target = None
+        self.closest_distance = float('inf')
+        self.loop_counter = False
+        self.target_hit = None
         self.iden = iden
+
 
     def find_target(self):
         closest_target = None
         closest_distance = float('inf')
 
         for enemy in self.teams[self.enemy_team]:
-            distance = get_distance(self.cell.x, self.cell.y, enemy.cell.x, enemy.cell.y)
-            if distance < closest_distance:
+            if enemy is self.target_hit:
+                continue
+
+            distance = self.get_distance(self.cell.x, self.cell.y, enemy.cell.x, enemy.cell.y)
+
+            if closest_target is None:
+                closest_target = enemy
+
+            if distance + HUSSAR_N_TARG_MULTIP * enemy.cell.n_targetted < closest_distance + HUSSAR_N_TARG_MULTIP * closest_target.cell.n_targetted:
                 closest_distance = distance
                 closest_target = enemy
 
         if closest_target is not None:
             closest_target.cell.n_targetted += 1
 
-        return closest_target
+        self.closest_target = closest_target
+        self.closest_distance = closest_distance
+
+
+    def hit_target(self):
+        if self.closest_target is None:
+            return
+        self.closest_target.health -= random_int(HUSSAR_MIN_DAMAGE, HUSSAR_MAX_DAMAGE)
+        self.loop_counter = random_int(1, HUSSAR_MAX_LOOP_COUNTER)
+        self.target_hit = self.closest_target
+
 
     def move(self):
         self.cell.blocked = True
 
-        if self.fight:
-            return
-        
-        closest_target = self.find_target()
-
-        if closest_target is None:
+        if self.closest_target is None:
             self.cell.next_type = self
             return
 
         for _ in range(HUSSAR_SPEED):
-            new_cell = get_move_cell(self.cell, closest_target.cell)
+            if self.loop_counter > 0 and self.target_hit is not None:
+                new_cell = self.get_next_cell_loop(self.target_hit.cell)
+                self.loop_counter -= 1
+                if self.loop_counter == 0:
+                    self.target_hit = None
+            else:
+                new_cell = self.get_next_cell(self.closest_target.cell)
   
             new_cell.blocked = True
             new_cell.next_type = self.cell.typ
@@ -278,15 +302,51 @@ class Hussar:
             self.cell = new_cell
 
             # slow down (random)
-            if random.randint(1, 10) <= HUSSAR_SLOW_DOWN_CHANCE:
-                break 
+            if random_int(1, 100) <= HUSSAR_SLOW_DOWN_CHANCE:
+                break
+
+
+    def get_distance(self, x1, y1, x2, y2):
+        return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+
+
+    def get_next_cell(self, cell2):
+        closest_distance = float('inf')
+        closest_nei = self.cell
+
+        for nei in self.cell.neighbors:
+            distance = self.get_distance(nei.x, nei.y, cell2.x, cell2.y)
+            if distance < closest_distance and not nei.blocked and nei.typ is None:
+                closest_distance = distance
+                closest_nei = nei
+        
+        return closest_nei
+    
+
+    def get_next_cell_loop(self, cell2):
+        furthest_distance = 0
+        furthest_nei = self.cell
+
+        for nei in self.cell.neighbors:
+            distance = self.get_distance(nei.x, nei.y, cell2.x, cell2.y)
+            if distance > furthest_distance and not nei.blocked and nei.typ is None:
+                furthest_distance = distance
+                furthest_nei = nei
+        
+        return furthest_nei
+
 
     def update(self):
+        self.find_target()
+        if self.closest_distance < 2:
+            self.hit_target()
         self.move()
-        
+
+
     def get_stats(self):
         return f"Team: {self.team}\nType: {self.__class__.__name__}\nID: {self.iden}\nHP: {self.health if self.health >=0 else 0}\n"
         # return self.health
+
 
 class Archer:
     def __init__(self, cell, team, board, game, iden):
@@ -418,20 +478,6 @@ class Archer:
     def get_stats(self):
         return f"Team: {self.team}\nType: {self.__class__.__name__}\nID: {self.iden}\nHP: {self.health if self.health >=0 else 0}\n"
 
-def get_distance(x1, y1, x2, y2):
-    return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-
-def get_move_cell(cell1, cell2):
-    closest_distance = float('inf')
-    closest_nei = cell1
-
-    for nei in cell1.neighbors:
-        distance = get_distance(nei.x, nei.y, cell2.x, cell2.y)
-        if distance < closest_distance and not nei.blocked:
-            closest_distance = distance
-            closest_nei = nei
-    
-    return closest_nei
 
 def random_int(mini, maxi):
     return random.randint(mini, maxi)

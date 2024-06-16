@@ -163,6 +163,7 @@ class MainGame:
         for i in self.board:
             for j in i:
                 j.blocked = False
+                j.n_targetted = 0
 
         self.iteration_A()
         self.field_clean()
