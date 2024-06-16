@@ -67,6 +67,8 @@ class MainGame:
         self.archer_B_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/german_archer.jpg")), (CELL_SIZE, CELL_SIZE))
         self.explosion_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/explosion.png")), (CELL_SIZE, CELL_SIZE))
         self.arrow_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/arrow.jpg")), (CELL_SIZE-4, CELL_SIZE-4))
+        self.polish_hussar = pygame.transform.scale(pygame.image.load(PurePath("./resources/polish_hussar.png")), (CELL_SIZE, CELL_SIZE))
+        self.german_horse = pygame.transform.scale(pygame.image.load(PurePath("./resources/germa_horse.png")), (CELL_SIZE, CELL_SIZE))
 
 
     #MOORE
@@ -287,9 +289,9 @@ class MainGame:
                         self.stats.agent_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/german_artillery.png")),(290,250))
                 if isinstance(self.stats.agent, Hussar):
                     if self.stats.agent.team == TEAM_A:
-                        self.stats.agent_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/polish_warrior.jpg")),(290,250))
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/polish_hussar.png")),(290,250))
                     else:
-                        self.stats.agent_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/germa_warrior.png")),(290,250))
+                        self.stats.agent_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/germa_horse.png")),(290,250))
                 if isinstance(self.stats.agent, Archer):
                     if self.stats.agent.team == TEAM_A:
                         self.stats.agent_image = pygame.transform.scale(pygame.image.load(PurePath("./resources/polish_archer.jpg")),(290,250))
@@ -361,9 +363,11 @@ class MainGame:
                             self.window.blit(self.artillery_B_image, rect_position)
                     if isinstance(cell.typ, Hussar):
                         if cell.typ.team == TEAM_A:
-                            pygame.draw.rect(self.window, HUSSAR_COLOR_A, rect_position)
+                            self.window.blit(self.polish_hussar, rect_position)
+                            # pygame.draw.rect(self.window, self.polish_hussar, rect_position)
                         else:
-                            pygame.draw.rect(self.window, HUSSAR_COLOR_B, rect_position)
+                            self.window.blit(self.german_horse, rect_position)
+                            # pygame.draw.rect(self.window, self.german_horse, rect_position)
                     if isinstance(cell.typ, Archer):
                         if cell.typ.team == TEAM_A:
                             self.window.blit(self.archer_A_image, rect_position)
