@@ -2,7 +2,6 @@ from CONFIG import *
 import random
 import math
 
-
 class Cell:
     def __init__(self, position):
         self.typ = None
@@ -170,7 +169,8 @@ class Artillery:
                 new_x = target.position[0] + random_int(-self.shooting_range, self.shooting_range)
                 new_y = target.position[1] + random_int(-self.shooting_range, self.shooting_range)
                 if new_y >= WIN_DIMS[1] or new_y <= 0 or new_x >= WIN_DIMS[0] or new_x <= 0:
-                    return
+                    new_y = target.position[1]
+                    new_x = target.position[0]
                 new_target = self.game.board[new_y][new_x]
                 self.full_damage_process(new_target)
             else:
@@ -424,7 +424,8 @@ class Archer:
                         new_x = target.position[0]
                         new_y = target.position[1] + random_int(-self.shooting_range, self.shooting_range)
                     if new_y >= WIN_DIMS[1] or new_y <= 0 or new_x >= WIN_DIMS[0] or new_x <= 0:
-                        return
+                        new_y = target.position[1]
+                        new_x = target.position[0]
                     new_target = self.game.board[new_y][new_x]
                     self.full_damage_process(new_target,'a')
                 else:

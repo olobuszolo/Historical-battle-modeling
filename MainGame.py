@@ -5,7 +5,8 @@ from CONFIG import *
 import time
 from pathlib import PurePath
 from Stats import Stats
-
+import matplotlib.pyplot as plt
+import numpy as np
 class MainGame:
     def __init__(self):
         pygame.init()
@@ -29,6 +30,11 @@ class MainGame:
         self.fog_work = False
         self.sun_work = False
         self.sun_team = None
+
+        self.number_of_agents_A = []
+        self.number_of_agents_B = []
+        self.stop_draw = False
+        self.should_draw = False
         
         # teams
         self.teams = {
@@ -111,6 +117,10 @@ class MainGame:
                     self.iteration_num += 1
             self.update()
             self.render()
+            # if self.should_draw and not self.stop_draw:
+            #     self.draw_plot(self.number_of_agents_A, self.number_of_agents_B)
+            #     # self.should_draw = False
+            #     self.stop_draw = True
 
 
     def calculate_field_warrior(self, team):
@@ -174,13 +184,27 @@ class MainGame:
 
         self.teams[TEAM_A] = [warrior for warrior in self.teams[TEAM_A] if warrior.health > 0]
         self.teams[TEAM_B] = [warrior for warrior in self.teams[TEAM_B] if warrior.health > 0]
-        
+
         for row in self.board:
             for cell in row:
                 if cell.typ is not None and cell.typ.health <= 0:
                     cell.typ = None
 
 
+        total_health_A = 0
+        total_health_B = 0
+        for war in self.teams[TEAM_A]:
+            total_health_A += war.health
+        self.number_of_agents_A.append(total_health_A)
+
+        for war in self.teams[TEAM_B]:
+            total_health_B += war.health
+        self.number_of_agents_B.append(total_health_B)
+
+        if (not self.teams[TEAM_A] or not self.teams[TEAM_B]) and not self.stop_draw:
+            # self.draw_plot(self.number_of_agents_A, self.number_of_agents_B)
+            self.should_draw = True
+            # self.stop_draw = True
 
         
     def iteration_A(self):
@@ -405,3 +429,19 @@ class MainGame:
             if isinstance(unit, Artillery):
                 ar += 1
         return w, a, h, ar
+
+    def draw_plot(self, team_A, team_B):
+        a = team_A
+        b = team_B
+
+        y = [i for i in range(len(a))]
+
+        plt.plot(y, a, label = "Poland")
+        plt.plot(y, b, label = "Germany")
+
+        plt.xlabel('Iteration number')
+        plt.ylabel('Total amount of team\'s health')
+
+        plt.legend()
+
+        plt.show()
