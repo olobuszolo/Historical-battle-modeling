@@ -23,7 +23,7 @@ Aplikacja do modelowania historycznych bitew w oparciu o wybrane zasady i mechan
 ## 🚀 Uruchomienie
 1. Pobierz lub sklonuj repozytorium:
    ```bash
-   git clone <adres_repozytorium>
+   git clone https://github.com/olobuszolo/Historical-battle-modeling.git
    ```
 2. Przejdź do katalogu projektu:
    ```bash
